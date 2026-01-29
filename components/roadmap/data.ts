@@ -1,64 +1,162 @@
 import { IconType } from "react-icons";
 import { LuDatabase, LuUsers, LuShare2, LuCalendar, LuTrendingUp as LuBarChart, LuRocket } from "react-icons/lu";
+import { addDays, parseISO, differenceInDays } from "date-fns";
+
+export interface Deliverable {
+  id: string;
+  text: string;
+  completed: boolean;
+  startDate: string; // ISO date format
+  durationDays: number; // Duration in days
+}
+
+export type TaskStatus = "Not Started" | "Planning & Research" | "Implementing" | "On Hold" | "Completed";
+
+export const TASK_STATUSES: TaskStatus[] = ["Not Started", "Planning & Research", "Implementing", "On Hold", "Completed"];
 
 export interface RoadmapItem {
-  month: string;
-  category: string;
+  id: string;
   title: string;
   description: string;
-  status: "Completed" | "In Progress" | "Planned";
+  status: TaskStatus;
   icon: IconType;
-  deliverables?: string[];
+  deliverables: Deliverable[];
 }
+
+// Utility function to compute card duration from deliverables
+export const computeCardDuration = (deliverables: Deliverable[]): { startDate: string; endDate: string; durationDays: number } | null => {
+  if (deliverables.length === 0) return null;
+
+  let minStart: Date | null = null;
+  let maxEnd: Date | null = null;
+
+  for (const d of deliverables) {
+    const start = parseISO(d.startDate);
+    const end = addDays(start, d.durationDays);
+
+    if (!minStart || start < minStart) minStart = start;
+    if (!maxEnd || end > maxEnd) maxEnd = end;
+  }
+
+  if (!minStart || !maxEnd) return null;
+
+  return {
+    startDate: minStart.toISOString().split("T")[0],
+    endDate: maxEnd.toISOString().split("T")[0],
+    durationDays: differenceInDays(maxEnd, minStart),
+  };
+};
+
+// Utility to find next available start date after all existing deliverables
+export const getNextAvailableDate = (deliverables: Deliverable[]): string => {
+  if (deliverables.length === 0) {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  let maxEnd: Date | null = null;
+  for (const d of deliverables) {
+    const end = addDays(parseISO(d.startDate), d.durationDays);
+    if (!maxEnd || end > maxEnd) maxEnd = end;
+  }
+
+  return maxEnd ? maxEnd.toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+};
+
+// Check if a date range overlaps with existing deliverables (excluding a specific id)
+export const isDateRangeOccupied = (deliverables: Deliverable[], startDate: string, durationDays: number, excludeId?: string): boolean => {
+  const newStart = parseISO(startDate);
+  const newEnd = addDays(newStart, durationDays);
+
+  for (const d of deliverables) {
+    if (excludeId && d.id === excludeId) continue;
+
+    const existingStart = parseISO(d.startDate);
+    const existingEnd = addDays(existingStart, d.durationDays);
+
+    // Check for overlap
+    if (newStart < existingEnd && newEnd > existingStart) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 export const ROADMAP_DATA: RoadmapItem[] = [
   {
-    month: "MONTH 1-2 • CORE CRM",
-    category: "Foundation & Architecture",
+    id: "1",
     title: "Foundation & Architecture",
     description: "Setting up the bedrock of the CRM: Database schemas, Authentication, and basic UI shell.",
     status: "Completed",
     icon: LuDatabase,
+    deliverables: [
+      { id: "1-1", text: "Database Schema Design", completed: true, startDate: "2025-01-15", durationDays: 15 },
+      { id: "1-2", text: "Authentication System", completed: true, startDate: "2025-01-30", durationDays: 15 },
+      { id: "1-3", text: "Basic UI Shell", completed: true, startDate: "2025-02-14", durationDays: 15 },
+      { id: "1-4", text: "API Architecture", completed: true, startDate: "2025-03-01", durationDays: 15 },
+    ],
   },
   {
-    month: "MONTH 3 • CORE CRM",
-    category: "Contact & Lead Management",
+    id: "2",
     title: "Contact & Lead Management",
     description: "Building the core CRM entities: Contacts, Companies, Deals, and Pipelines.",
-    status: "In Progress",
+    status: "Implementing",
     icon: LuUsers,
-    deliverables: ["Contact 360 View", "Kanban Deal Pipelines", "Activity Logging (Calls/Notes)", "Import/Export Engines"],
+    deliverables: [
+      { id: "2-1", text: "Contact 360 View", completed: true, startDate: "2025-03-15", durationDays: 7 },
+      { id: "2-2", text: "Kanban Deal Pipelines", completed: false, startDate: "2025-03-22", durationDays: 8 },
+      { id: "2-3", text: "Activity Logging (Calls/Notes)", completed: false, startDate: "2025-03-30", durationDays: 7 },
+      { id: "2-4", text: "Import/Export Engines", completed: false, startDate: "2025-04-06", durationDays: 8 },
+    ],
   },
   {
-    month: "MONTH 4-5 • SOCIAL INTEGRATION",
-    category: "Social Media Aggregation",
+    id: "3",
     title: "Social Media Aggregation",
     description: "Integrating APIs from LinkedIn, X (Twitter), Instagram, and Facebook for unified inbox and posting.",
-    status: "Planned",
+    status: "Not Started",
     icon: LuShare2,
+    deliverables: [
+      { id: "3-1", text: "LinkedIn API Integration", completed: false, startDate: "2025-04-15", durationDays: 10 },
+      { id: "3-2", text: "X (Twitter) API Integration", completed: false, startDate: "2025-04-25", durationDays: 10 },
+      { id: "3-3", text: "Instagram API Integration", completed: false, startDate: "2025-05-05", durationDays: 10 },
+      { id: "3-4", text: "Unified Inbox", completed: false, startDate: "2025-05-15", durationDays: 15 },
+    ],
   },
   {
-    month: "MONTH 6 • SOCIAL INTEGRATION",
-    category: "Content Scheduler & Publisher",
+    id: "4",
     title: "Content Scheduler & Publisher",
     description: "The visual calendar for planning, drafting, and scheduling posts across all channels.",
-    status: "Planned",
+    status: "Not Started",
     icon: LuCalendar,
+    deliverables: [
+      { id: "4-1", text: "Visual Calendar", completed: false, startDate: "2025-06-01", durationDays: 10 },
+      { id: "4-2", text: "Post Drafting", completed: false, startDate: "2025-06-11", durationDays: 10 },
+      { id: "4-3", text: "Multi-channel Scheduling", completed: false, startDate: "2025-06-21", durationDays: 10 },
+    ],
   },
   {
-    month: "MONTH 7 • INTELLIGENCE",
-    category: "Analytics & ROI Dashboard",
+    id: "5",
     title: "Analytics & ROI Dashboard",
     description: "Tracking performance: Engagement rates, lead conversion from social, and team productivity.",
-    status: "Planned",
+    status: "Planning & Research",
     icon: LuBarChart,
+    deliverables: [
+      { id: "5-1", text: "Engagement Metrics", completed: false, startDate: "2025-07-01", durationDays: 10 },
+      { id: "5-2", text: "Lead Conversion Tracking", completed: false, startDate: "2025-07-11", durationDays: 10 },
+      { id: "5-3", text: "Team Productivity Reports", completed: false, startDate: "2025-07-21", durationDays: 10 },
+    ],
   },
   {
-    month: "MONTH 8 • GO-TO-MARKET",
-    category: "Beta Launch & Optimization",
+    id: "6",
     title: "Beta Launch & Optimization",
     description: "Closed beta testing, bug squashing, performance tuning, and final public release.",
-    status: "Planned",
+    status: "Not Started",
     icon: LuRocket,
+    deliverables: [
+      { id: "6-1", text: "Closed Beta Testing", completed: false, startDate: "2025-08-01", durationDays: 7 },
+      { id: "6-2", text: "Bug Fixes", completed: false, startDate: "2025-08-08", durationDays: 8 },
+      { id: "6-3", text: "Performance Optimization", completed: false, startDate: "2025-08-16", durationDays: 7 },
+      { id: "6-4", text: "Public Release", completed: false, startDate: "2025-08-23", durationDays: 8 },
+    ],
   },
 ];

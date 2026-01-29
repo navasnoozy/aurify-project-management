@@ -23,6 +23,8 @@ const useSigninUser = () => {
     onSuccess: (data) => {
       if (data.success && data.data?.accessToken) {
         setAccessToken(data.data.accessToken);
+        // Set persist flag in localStorage for session persistence
+        localStorage.setItem("persist", "true");
         // Create an artificial "currentUser" entry or invalidate to refetch
         // Ideally we should invalidate "currentUser" so it fetches fresh data from server
         queryClient.invalidateQueries({ queryKey: ["currentUser"] });

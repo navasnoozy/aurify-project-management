@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import PersistLogin from "@/components/PersistLogin";
 
 export function Provider(props: ColorModeProviderProps) {
   const [queryClient] = useState(() => new QueryClient());
@@ -14,7 +15,9 @@ export function Provider(props: ColorModeProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ChakraProvider value={defaultSystem}>
-        <ColorModeProvider {...props} />
+        <PersistLogin>
+          <ColorModeProvider {...props} />
+        </PersistLogin>
         <ToastContainer position="top-right" autoClose={3000} />
       </ChakraProvider>
       <ReactQueryDevtools initialIsOpen={false} />
