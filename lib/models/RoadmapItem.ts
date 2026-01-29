@@ -30,6 +30,7 @@ export interface IRoadmapItem extends Document {
   deliverables: any[]; // Using schema definition for array
   createdAt: Date;
   updatedAt: Date;
+  order: number;
 }
 
 // RoadmapItem Schema
@@ -45,6 +46,7 @@ const RoadmapItemSchema = new Schema<IRoadmapItem>(
     },
     iconName: { type: String, required: true }, // Store "LuDatabase", "LuUsers", etc.
     deliverables: [DeliverableSchema],
+    order: { type: Number, default: 0 },
   },
   {
     timestamps: true,

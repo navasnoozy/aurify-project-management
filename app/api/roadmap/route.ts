@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+
 import { headers } from "next/headers";
 import jwt from "jsonwebtoken";
 import db from "@/lib/db";
@@ -29,9 +32,8 @@ export async function GET() {
   try {
     await db.connect();
 
-    // Fetch all items, sorted by createdAt (or we could add an explicit order field later)
-    // For now, sorting by createdAt ascending to mimic the array order logic roughly
-    const items = await RoadmapItem.find({}).sort({ createdAt: 1 });
+    // Fetch all items, sorted by order (ascending) then createdAt
+    const items = await RoadmapItem.find({}).sort({ order: 1, createdAt: 1 });
 
     return NextResponse.json(items);
   } catch (error) {

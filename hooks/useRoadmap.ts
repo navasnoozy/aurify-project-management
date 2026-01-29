@@ -110,3 +110,38 @@ export const useDeleteRoadmapItem = () => {
     },
   });
 };
+
+export const useReorderRoadmapItems = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: roadmapService.reorder,
+    onMutate: async (newItemIds) => {
+      console.log("Optimistic Reorder:", newItemIds);
+      await queryClient.cancelQueries({ queryKey: ["roadmap"] });
+      const previousItems = queryClient.getQueryData<RoadmapItem[]>(["roadmap"]);
+
+      if (previousItems) {
+        const idToIndex = new Map(newItemIds.map((id, index) => [id, index]));
+
+        const newItems = [...previousItems].sort((a, b) => {
+          const indexA = idToIndex.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+          const indexB = idToIndex.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+          return indexA - indexB;
+        });
+
+        queryClient.setQueryData<RoadmapItem[]>(["roadmap"], newItems);
+      }
+
+      return { previousItems };
+    },
+    onError: (err, newItemIds, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(["roadmap"], context.previousItems);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["roadmap"] });
+    },
+  });
+};

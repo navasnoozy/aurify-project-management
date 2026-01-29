@@ -26,3 +26,10 @@ export const addCardSchema = z.object({
 });
 
 export type AddCardInput = z.infer<typeof addCardSchema>;
+
+// Reorder Cards Schema
+export const reorderCardsSchema = z.object({
+  itemIds: z.array(z.string()),
+});
+
+export type ReorderCardsInput = z.infer<typeof reorderCardsSchema>;

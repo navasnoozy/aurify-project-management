@@ -23,6 +23,8 @@ interface TimelineItemProps {
   onToggleExpand: () => void;
   onDeleteItem: (id: string) => void;
   onEditItem: (item: RoadmapItem) => void;
+  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
+  isDragging?: boolean;
 }
 
 const MotionBox = motion.create(Box);
@@ -44,7 +46,7 @@ const getStatusBorderColor = (status: TaskStatus): string => {
   }
 };
 
-export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpdateStatus, isExpanded, onToggleExpand, onDeleteItem, onEditItem }: TimelineItemProps) => {
+export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpdateStatus, isExpanded, onToggleExpand, onDeleteItem, onEditItem, dragHandleProps, isDragging }: TimelineItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { data: currentUser } = useCurrentUser();
@@ -76,9 +78,11 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
       align={{ base: "flex-start", md: "center" }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      opacity={isDragging ? 0.3 : 1} // Visual feedback for original item
     >
-      {/* Icon Circle on the line */}
+      {/* Icon Circle on the line - DRAG HANDLE */}
       <Box
+        {...dragHandleProps}
         position="absolute"
         left={{ base: "20px", md: "50%" }}
         top="0"
@@ -92,14 +96,16 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
         borderColor="purple.400"
         transition="all 0.2s"
         _hover={{ ring: "3px", ringColor: "purple.200" }}
+        cursor={isLoggedIn ? "grab" : "default"}
+        _active={{ cursor: isLoggedIn ? "grabbing" : "default" }}
       >
         <Icon as={item.icon} fontSize={{ base: "lg", md: "lg", "2xl": "xl" }} color="purple.500" />
       </Box>
 
       {/* Content Card - positioned on left or right side */}
       <MotionBox
-        initial={{ opacity: 0, x: isLeft ? -40 : 40 }}
-        whileInView={{ opacity: 1, x: 0 }}
+        initial={isDragging ? false : { opacity: 0, x: isLeft ? -40 : 40 }}
+        whileInView={isDragging ? undefined : { opacity: 1, x: 0 }}
         transition={{ duration: 0.6, delay: index * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
         viewport={{ once: true }}
         width={{ base: "calc(100% - 60px)", md: "46%", lg: "44%" }}
@@ -152,7 +158,7 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
 
       {/* Progress Graph - Positioned on OPPOSITE side of the card */}
       <AnimatePresence>
-        {isHovered && (
+        {isHovered && !isDragging && (
           <motion.div
             // Centering logic:
             // If isLeft (Card Left), Graph is Right. Center of Right Column is 75%.

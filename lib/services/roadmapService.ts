@@ -43,4 +43,9 @@ export const roadmapService = {
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(`${BASE_URL}/${id}`);
   },
+
+  // Reorder items
+  reorder: async (itemIds: string[]): Promise<void> => {
+    await axiosInstance.patch(`${BASE_URL}/reorder`, { itemIds });
+  },
 };
