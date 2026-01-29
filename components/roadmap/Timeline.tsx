@@ -1,27 +1,110 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Flex } from "@chakra-ui/react";
+import { Box, Flex, Spinner, Center, Text } from "@chakra-ui/react";
 import { TimelineItem } from "./TimelineItem";
-import { ROADMAP_DATA, RoadmapItem, Deliverable, TaskStatus } from "./data";
+import { AddCardButton } from "./AddCardButton";
+import { CardModal } from "./CardModal";
+import { RoadmapItem, Deliverable, TaskStatus } from "./data";
+import { useRoadmapItems, useCreateRoadmapItem, useUpdateRoadmapItem, useDeleteRoadmapItem } from "@/hooks/useRoadmap";
+import { AddCardInput } from "@/lib/schemas/roadmap";
+
+interface ModalState {
+  isOpen: boolean;
+  mode: "add" | "edit";
+  data?: RoadmapItem;
+}
 
 export const Timeline = () => {
-  // Local state for frontend-only editing
-  const [items, setItems] = useState<RoadmapItem[]>(ROADMAP_DATA);
-  // State for tracking which card is expanded (for laptop screens)
+  // Server State via React Query
+  const { data: items = [], isLoading, isError } = useRoadmapItems();
+  const createItemMutation = useCreateRoadmapItem();
+  const updateItemMutation = useUpdateRoadmapItem();
+  const deleteItemMutation = useDeleteRoadmapItem();
+
+  // Local state for UI Only
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Unified Modal State
+  const [modalState, setModalState] = useState<ModalState>({
+    isOpen: false,
+    mode: "add",
+  });
 
   const handleToggleExpand = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
   const handleUpdateDeliverables = (id: string, deliverables: Deliverable[]) => {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, deliverables } : item)));
+    // Ideally this would be a mutation too, but our current API only updates full item
+    // We can find the item and update it
+    const item = items.find((i) => i.id === id);
+    if (item) {
+      updateItemMutation.mutate({ ...item, deliverables });
+    }
   };
 
   const handleUpdateStatus = (id: string, status: TaskStatus) => {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)));
+    const item = items.find((i) => i.id === id);
+    if (item) {
+      updateItemMutation.mutate({ ...item, status });
+    }
   };
+
+  // Add or Update Handler
+  const handleSaveItem = (item: RoadmapItem) => {
+    if (modalState.mode === "add") {
+      // For create, we filter out ID since backend generates it,
+      // OR we adjust our create mutation to accept AddCardInput.
+      // Our CardModal sends a full RoadmapItem with a temp ID.
+      // We should strip it and send only the necessary fields to CREATE endpoint.
+      // The API expects { title, description, status }.
+      const input: AddCardInput = {
+        title: item.title,
+        description: item.description,
+        status: item.status,
+      };
+      createItemMutation.mutate(input);
+    } else {
+      // Edit Mode
+      updateItemMutation.mutate(item);
+    }
+    closeModal();
+  };
+
+  // Delete card
+  const handleDeleteItem = (id: string) => {
+    deleteItemMutation.mutate(id);
+  };
+
+  // Modal Handlers
+  const openAddModal = () => {
+    setModalState({ isOpen: true, mode: "add" });
+  };
+
+  const openEditModal = (item: RoadmapItem) => {
+    setModalState({ isOpen: true, mode: "edit", data: item });
+  };
+
+  const closeModal = () => {
+    setModalState((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  if (isLoading) {
+    return (
+      <Center py={20}>
+        <Spinner size="xl" color="purple.500" />
+      </Center>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Center py={20}>
+        <Text color="red.500">Failed to load roadmap data. Please try again.</Text>
+      </Center>
+    );
+  }
 
   return (
     <Box position="relative" width="full" maxWidth={{ base: "full", md: "5xl", lg: "6xl" }} mx="auto" p={4}>
@@ -50,9 +133,17 @@ export const Timeline = () => {
             onUpdateStatus={handleUpdateStatus}
             isExpanded={expandedId === item.id}
             onToggleExpand={() => handleToggleExpand(item.id)}
+            onDeleteItem={handleDeleteItem}
+            onEditItem={openEditModal}
           />
         ))}
       </Flex>
+
+      {/* Add Card Button (Auth-gated inside component) */}
+      <AddCardButton onClick={openAddModal} />
+
+      {/* Unified Card Modal */}
+      <CardModal isOpen={modalState.isOpen} onClose={closeModal} onSave={handleSaveItem} initialData={modalState.mode === "edit" ? modalState.data : null} />
     </Box>
   );
 };

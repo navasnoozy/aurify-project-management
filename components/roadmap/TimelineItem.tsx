@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Card, Flex, Text, Icon } from "@chakra-ui/react";
+import { Box, Card, Flex, Text, Icon, IconButton, Dialog } from "@chakra-ui/react";
+import { Trash2, Pencil } from "lucide-react";
 import { RoadmapItem, Deliverable, TaskStatus } from "./data";
 import { motion, AnimatePresence } from "framer-motion";
 import { DurationLabel } from "./DurationLabel";
 import { DeliverablesList } from "./DeliverablesList";
 import { StatusBadge } from "./StatusBadge";
 import { ProgressGraph } from "./ProgressGraph";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import { AppButton } from "@/components/AppButton";
 
 interface TimelineItemProps {
   item: RoadmapItem;
@@ -17,6 +20,8 @@ interface TimelineItemProps {
   onUpdateStatus: (id: string, status: TaskStatus) => void;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  onDeleteItem: (id: string) => void;
+  onEditItem: (item: RoadmapItem) => void;
 }
 
 const MotionBox = motion.create(Box);
@@ -38,8 +43,10 @@ const getStatusBorderColor = (status: TaskStatus): string => {
   }
 };
 
-export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpdateStatus, isExpanded, onToggleExpand }: TimelineItemProps) => {
+export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpdateStatus, isExpanded, onToggleExpand, onDeleteItem, onEditItem }: TimelineItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { data: currentUser } = useCurrentUser();
 
   const handleDeliverablesUpdate = (deliverables: Deliverable[]) => {
     onUpdateDeliverables(item.id, deliverables);
@@ -49,7 +56,13 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
     onUpdateStatus(item.id, status);
   };
 
+  const handleDelete = () => {
+    onDeleteItem(item.id);
+    setIsDeleteDialogOpen(false);
+  };
+
   const borderColor = getStatusBorderColor(item.status);
+  const isLoggedIn = !!currentUser;
 
   return (
     <Flex
@@ -57,7 +70,7 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
       width="100%"
       mb={{ base: 3, md: 8, "2xl": 12 }}
       mt={{ base: 2, md: 2, "2xl": 4 }}
-      minH={{ base: "auto", "2xl": "220px" }} // Reduced: Graph is now 260px
+      minH={{ base: "auto", "2xl": "220px" }}
       direction={{ base: "column", md: "row" }}
       align={{ base: "flex-start", md: "center" }}
       onMouseEnter={() => setIsHovered(true)}
@@ -98,7 +111,19 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
 
         <Card.Root variant="elevated" boxShadow="md" borderLeftWidth={4} borderLeftColor={borderColor}>
           <Card.Body gap={{ base: 2, md: 1.5, "2xl": 2 }}>
-            <Flex justify="flex-end" align="center" mb={2}>
+            <Flex justify="space-between" align="center" mb={2}>
+              {/* Action Buttons (Auth-gated) */}
+              {isLoggedIn && (
+                <Flex gap={1}>
+                  <IconButton aria-label="Edit card" variant="ghost" colorPalette="blue" size="xs" onClick={() => onEditItem(item)}>
+                    <Pencil size={14} />
+                  </IconButton>
+                  <IconButton aria-label="Delete card" variant="ghost" colorPalette="red" size="xs" onClick={() => setIsDeleteDialogOpen(true)}>
+                    <Trash2 size={14} />
+                  </IconButton>
+                </Flex>
+              )}
+              {!isLoggedIn && <Box />}
               <StatusBadge status={item.status} onStatusChange={handleStatusChange} />
             </Flex>
 
@@ -135,6 +160,33 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog.Root open={isDeleteDialogOpen} onOpenChange={(e) => setIsDeleteDialogOpen(e.open)}>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Delete Card</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <Text>
+                Are you sure you want to delete <strong>{item.title}</strong>? This action cannot be undone.
+              </Text>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Flex gap={2} justify="flex-end">
+                <AppButton variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancel
+                </AppButton>
+                <AppButton colorPalette="red" onClick={handleDelete}>
+                  Delete
+                </AppButton>
+              </Flex>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
     </Flex>
   );
 };
