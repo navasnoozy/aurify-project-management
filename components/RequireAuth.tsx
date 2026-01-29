@@ -1,35 +1,34 @@
-// src/components/RequireAuth.tsx
-import { Navigate, Outlet, useLocation } from "react-router";
-import useCurrentUser from "../features/auth/hooks/useCurrentUser";
-import { Skeleton, Flex } from "@chakra-ui/react";
+"use client";
 
-const RequireAuth = () => {
+import { useRouter } from "next/navigation";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import { Skeleton, Flex } from "@chakra-ui/react";
+import { useEffect, ReactNode } from "react";
+
+const RequireAuth = ({ children }: { children: ReactNode }) => {
   const { data: currentUser, isLoading } = useCurrentUser();
-  const location = useLocation();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !currentUser) {
+      router.push("/signin");
+    }
+  }, [isLoading, currentUser, router]);
 
   if (isLoading) {
     return (
-      <Flex
-        width="full"
-        height="95vh"
-        direction="column"
-        justify="center"
-        align="center"
-        gap={4}
-        p={4}
-      >
+      <Flex width="full" height="95vh" direction="column" justify="center" align="center" gap={4} p={4}>
         <Skeleton width="full" height="100px" />
         <Skeleton width="full" flex={1} borderRadius="md" />
       </Flex>
     );
   }
 
-  // If not authenticated, redirect to signin with the original location saved
   if (!currentUser) {
-    return <Navigate to="/signin" state={{ from: location }} replace />;
+    return null; // Don't render children until redirect
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 };
 
 export default RequireAuth;

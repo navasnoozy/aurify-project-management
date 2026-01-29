@@ -10,3 +10,5 @@ Before every implementation, the following instructions must be followed:
 
 5. The project uses the Next.js App Router, not the Pages Router.
 6. The project using zod version 4 for validation with react hook form  , Zod version 4 has introduced several changes compared to previous versions, including breaking and minor changes. You must research and be aware of these changes before implementing anything.
+
+7. The project also using tanstack/react-query
