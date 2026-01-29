@@ -2,19 +2,20 @@
 
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { Deliverable, TaskStatus, getStatusCounts, TASK_STATUSES } from "./data";
+import { motion } from "framer-motion";
 
 interface ProgressGraphProps {
   deliverables: Deliverable[];
   status: TaskStatus;
 }
 
-// Premium status colors
-const STATUS_COLORS: Record<TaskStatus, { main: string; bg: string }> = {
-  Completed: { main: "#10b981", bg: "#d1fae5" },
-  Implementing: { main: "#3b82f6", bg: "#dbeafe" },
-  "Planning & Research": { main: "#8b5cf6", bg: "#ede9fe" },
-  "On Hold": { main: "#f59e0b", bg: "#fef3c7" },
-  "Not Started": { main: "#6b7280", bg: "#f3f4f6" },
+// Gradient definitions for premium 3D look
+const GRADIENTS: Record<TaskStatus, { from: string; to: string; bg: string }> = {
+  Completed: { from: "#34d399", to: "#059669", bg: "#ecfdf5" },
+  Implementing: { from: "#60a5fa", to: "#2563eb", bg: "#eff6ff" },
+  "Planning & Research": { from: "#f472b6", to: "#db2777", bg: "#fdf2f8" },
+  "On Hold": { from: "#fbbf24", to: "#d97706", bg: "#fffbeb" },
+  "Not Started": { from: "#9ca3af", to: "#4b5563", bg: "#f9fafb" },
 };
 
 // Polar to Cartesian conversion
@@ -26,7 +27,7 @@ const polarToCartesian = (cx: number, cy: number, radius: number, angleInDegrees
   };
 };
 
-// Create SVG arc path (filled wedge)
+// Create SVG path
 const createArcPath = (cx: number, cy: number, innerR: number, outerR: number, startAngle: number, endAngle: number): string => {
   const innerStart = polarToCartesian(cx, cy, innerR, endAngle);
   const innerEnd = polarToCartesian(cx, cy, innerR, startAngle);
@@ -43,13 +44,16 @@ const createArcPath = (cx: number, cy: number, innerR: number, outerR: number, s
   ].join(" ");
 };
 
+const MotionPath = motion.path;
+const MotionBox = motion.create(Box);
+
 export const ProgressGraph = ({ deliverables }: ProgressGraphProps) => {
   const totalTasks = deliverables.length;
   const statusCounts = getStatusCounts(deliverables);
   const completedCount = statusCounts["Completed"];
   const completionPercent = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
-  // Build segments data
+  // Filter segments
   const segments: { status: TaskStatus; count: number; percent: number }[] = [];
   TASK_STATUSES.forEach((s) => {
     const count = statusCounts[s];
@@ -62,26 +66,17 @@ export const ProgressGraph = ({ deliverables }: ProgressGraphProps) => {
     }
   });
 
-  // Empty state
-  if (segments.length === 0) {
-    return (
-      <Flex direction="column" align="center" justify="center" h="150px">
-        <Text fontSize="sm" color="gray.400">
-          No deliverables
-        </Text>
-      </Flex>
-    );
-  }
+  if (segments.length === 0) return null;
 
-  // Larger chart dimensions
-  const size = 160;
+  // Dimensions
+  const size = 280; // Increased for external labels
   const cx = size / 2;
   const cy = size / 2;
-  const outerRadius = 72;
-  const innerRadius = 44;
-  const gapAngle = 3;
+  const outerRadius = 85;
+  const innerRadius = 55;
+  const gapAngle = 4;
+  const labelRadius = outerRadius + 30; // Labels positioned outside
 
-  // Calculate arc data
   let currentAngle = 0;
   const arcs = segments.map((seg) => {
     const segmentAngle = (seg.percent / 100) * 360;
@@ -91,7 +86,9 @@ export const ProgressGraph = ({ deliverables }: ProgressGraphProps) => {
     currentAngle += segmentAngle;
 
     const midAngle = (startAngle + endAngle) / 2;
-    const labelRadius = (innerRadius + outerRadius) / 2;
+    // Point on outer edge of arc (start of line)
+    const arcEdge = polarToCartesian(cx, cy, outerRadius, midAngle);
+    // Point for label (end of line, outside)
     const labelPos = polarToCartesian(cx, cy, labelRadius, midAngle);
 
     return {
@@ -99,28 +96,56 @@ export const ProgressGraph = ({ deliverables }: ProgressGraphProps) => {
       startAngle,
       endAngle,
       path: createArcPath(cx, cy, innerRadius, outerRadius, startAngle, endAngle),
+      arcEdge,
       labelPos,
+      midAngle,
     };
   });
 
   return (
-    <Flex direction="column" align="center" gap={3}>
-      {/* Donut Chart - Free floating, no card */}
+    <Flex direction="column" align="center" gap={4}>
       <Box position="relative" width={`${size}px`} height={`${size}px`}>
-        <svg
-          width={size}
-          height={size}
-          style={{
-            overflow: "visible",
-            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.15))",
-          }}
-        >
-          {arcs.map((arc) => (
-            <path key={arc.status} d={arc.path} fill={STATUS_COLORS[arc.status].main} style={{ transition: "opacity 0.2s" }} />
-          ))}
+        <svg width={size} height={size} style={{ overflow: "visible", filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.12))" }}>
+          <defs>
+            {Object.entries(GRADIENTS).map(([status, colors]) => {
+              const gradientId = `grad-${status.replace(/[^a-zA-Z0-9]/g, "-")}`;
+              return (
+                <linearGradient key={status} id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={colors.from} />
+                  <stop offset="100%" stopColor={colors.to} />
+                </linearGradient>
+              );
+            })}
+          </defs>
+
+          {/* Donut segments */}
+          {arcs.map((arc, i) => {
+            const gradientId = `grad-${arc.status.replace(/[^a-zA-Z0-9]/g, "-")}`;
+            return (
+              <MotionPath
+                key={arc.status}
+                d={arc.path}
+                fill={`url(#${gradientId})`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: i * 0.1, ease: "easeOut" }}
+                whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
+                style={{ originX: "50%", originY: "50%", cursor: "pointer" }}
+              />
+            );
+          })}
+
+          {/* Dew drop connector lines */}
+          {arcs.map((arc) => {
+            if (arc.percent < 8) return null;
+            const gradientId = `grad-${arc.status.replace(/[^a-zA-Z0-9]/g, "-")}`;
+            return (
+              <line key={`line-${arc.status}`} x1={arc.arcEdge.x} y1={arc.arcEdge.y} x2={arc.labelPos.x} y2={arc.labelPos.y} stroke={`url(#${gradientId})`} strokeWidth={2} strokeLinecap="round" />
+            );
+          })}
         </svg>
 
-        {/* Center - Completion % */}
+        {/* Center Info */}
         <Flex
           position="absolute"
           top="50%"
@@ -129,53 +154,77 @@ export const ProgressGraph = ({ deliverables }: ProgressGraphProps) => {
           direction="column"
           align="center"
           justify="center"
-          w={`${innerRadius * 2 - 6}px`}
-          h={`${innerRadius * 2 - 6}px`}
+          w={`${innerRadius * 2 - 8}px`}
+          h={`${innerRadius * 2 - 8}px`}
           borderRadius="full"
-          bg="white"
-          boxShadow="inset 0 2px 8px rgba(0,0,0,0.06)"
+          bg="rgba(255,255,255,0.95)"
+          backdropFilter="blur(5px)"
+          boxShadow="inset 0 2px 10px rgba(0,0,0,0.05)"
         >
-          <Text fontSize="2xl" fontWeight="bold" color="gray.800" lineHeight="1">
+          <Text fontSize="3xl" fontWeight="800" letterSpacing="-1px" color="gray.800" lineHeight="1">
             {completionPercent}%
           </Text>
-          <Text fontSize="xs" color="gray.500" mt={0.5}>
-            complete
+          <Text fontSize="2xs" fontWeight="bold" textTransform="uppercase" letterSpacing="1px" color="gray.400" mt={1}>
+            Done
           </Text>
         </Flex>
 
-        {/* Percentage labels on segments */}
-        {arcs.map((arc) => {
-          if (arc.percent < 12) return null;
+        {/* Dew Drop Labels - Outside the donut */}
+        {arcs.map((arc, i) => {
+          if (arc.percent < 8) return null;
+          const colors = GRADIENTS[arc.status];
           return (
-            <Text
+            <MotionBox
               key={`lbl-${arc.status}`}
               position="absolute"
               left={`${arc.labelPos.x}px`}
               top={`${arc.labelPos.y}px`}
-              transform="translate(-50%, -50%)"
-              fontSize="xs"
-              fontWeight="bold"
-              color="white"
-              textShadow="0 1px 4px rgba(0,0,0,0.5)"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 + i * 0.1, type: "spring", stiffness: 300, damping: 20 }}
+              style={{ transform: "translate(-50%, -50%)" }}
               pointerEvents="none"
             >
-              {arc.percent}%
-            </Text>
+              {/* Dew drop bubble */}
+              <Box bg={colors.to} color="white" px={2} py={1} borderRadius="full" boxShadow={`0 4px 12px ${colors.to}40`} fontSize="xs" fontWeight="800" whiteSpace="nowrap">
+                {arc.percent}%
+              </Box>
+            </MotionBox>
           );
         })}
       </Box>
 
-      {/* Horizontal Legend */}
-      <Flex gap={3} flexWrap="wrap" justify="center">
-        {arcs.map((arc) => (
-          <Flex key={arc.status} align="center" gap={1.5} fontSize="xs">
-            <Box w="10px" h="10px" borderRadius="sm" bg={STATUS_COLORS[arc.status].main} flexShrink={0} />
-            <Text color="gray.600">{arc.status.replace("Planning & Research", "Planning")}</Text>
-            <Text fontWeight="bold" color="gray.800">
-              ({arc.count})
-            </Text>
-          </Flex>
-        ))}
+      {/* Compact Legend */}
+      <Flex gap={2} flexWrap="wrap" justify="center" px={2}>
+        {arcs.map((arc, i) => {
+          const colors = GRADIENTS[arc.status];
+          return (
+            <MotionBox key={arc.status} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}>
+              <Flex
+                align="center"
+                gap={1.5}
+                bg="white"
+                py={1}
+                px={2}
+                borderRadius="full"
+                boxShadow="0 2px 6px rgba(0,0,0,0.06)"
+                border="1px solid"
+                borderColor="gray.100"
+                fontSize="2xs"
+                _hover={{ transform: "translateY(-1px)", boxShadow: "0 4px 10px rgba(0,0,0,0.1)" }}
+                transition="all 0.2s"
+              >
+                <Box w="6px" h="6px" borderRadius="full" bg={colors.to} flexShrink={0} />
+                <Text fontWeight="600" color="gray.600">
+                  {arc.status.replace("Planning & Research", "Planning")}
+                </Text>
+                <Text fontWeight="bold" color="gray.800">
+                  {arc.count}
+                </Text>
+              </Flex>
+            </MotionBox>
+          );
+        })}
       </Flex>
     </Flex>
   );
