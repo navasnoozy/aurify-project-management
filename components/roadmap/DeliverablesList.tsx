@@ -1,13 +1,12 @@
 "use client";
 
-import { Box, Text, Flex, Input, IconButton, useBreakpointValue, Badge } from "@chakra-ui/react";
+import { Box, Text, Flex, Input, IconButton, useBreakpointValue, Badge, Popover, Textarea, Portal } from "@chakra-ui/react";
 import { useState } from "react";
-import { Plus, Trash2, ChevronDown, ChevronUp, Check } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronUp, Check, X, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Deliverable, TaskStatus, getNextAvailableDate } from "./data";
 import { DeliverableDuration } from "./DeliverableDuration";
 import { StatusBadge } from "./StatusBadge";
-import { AppButton } from "@/components/AppButton";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 interface DeliverablesListProps {
@@ -22,6 +21,8 @@ export const DeliverablesList = ({ deliverables, onUpdate, isExpanded, onToggleE
   const [newDeliverable, setNewDeliverable] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   // Check if screen is large desktop (2xl+)
   const isLargeScreen = useBreakpointValue({ base: false, "2xl": true });
@@ -41,6 +42,35 @@ export const DeliverablesList = ({ deliverables, onUpdate, isExpanded, onToggleE
       const updated = deliverables.filter((d) => d.id !== deleteId);
       onUpdate(updated);
       setDeleteId(null);
+    }
+  };
+
+  const handleEditOpen = (d: Deliverable) => {
+    setEditingId(d.id);
+    setEditText(d.text);
+  };
+
+  const handleEditSave = () => {
+    if (editingId && editText.trim()) {
+      const updated = deliverables.map((d) => (d.id === editingId ? { ...d, text: editText.trim() } : d));
+      onUpdate(updated);
+    }
+    setEditingId(null);
+    setEditText("");
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditText("");
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      handleEditCancel();
+    }
+    // Ctrl/Cmd + Enter to save
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      handleEditSave();
     }
   };
 
@@ -111,19 +141,76 @@ export const DeliverablesList = ({ deliverables, onUpdate, isExpanded, onToggleE
                 px={2}
                 borderRadius="md"
                 borderWidth="1px"
-                borderColor="gray.200"
+                borderColor={editingId === d.id ? "blue.400" : "gray.200"}
+                boxShadow={editingId === d.id ? "0 0 0 2px var(--chakra-colors-blue-100)" : "none"}
+                transition="all 0.15s"
                 css={{
-                  "& .delete-btn": { opacity: 0, transition: "opacity 0.2s" },
-                  "&:hover .delete-btn": { opacity: 1 },
+                  "& .action-btn": { opacity: 0, transition: "opacity 0.2s" },
+                  "&:hover .action-btn": { opacity: 1 },
                 }}
               >
-                {/* Row 1: Name + Delete */}
+                {/* Row 1: Name + Actions */}
                 <Flex justify="space-between" align="flex-start" gap={2}>
-                  <Text fontSize="xs" fontWeight="medium" flex={1} textDecoration={d.status === "Completed" ? "line-through" : "none"} color={d.status === "Completed" ? "gray.400" : "gray.700"}>
-                    {d.text}
-                  </Text>
+                  <Popover.Root
+                    open={editingId === d.id}
+                    onOpenChange={(e) => {
+                      if (!e.open) handleEditCancel();
+                    }}
+                  >
+                    <Flex flex={1} align="center" gap={1}>
+                      <Text fontSize="xs" fontWeight="medium" flex={1} textDecoration={d.status === "Completed" ? "line-through" : "none"} color={d.status === "Completed" ? "gray.400" : "gray.700"}>
+                        {d.text}
+                      </Text>
+
+                      {isEditable && (
+                        <Popover.Trigger asChild>
+                          <IconButton className="action-btn" aria-label="Edit deliverable" size="xs" variant="ghost" colorPalette="blue" onClick={() => handleEditOpen(d)}>
+                            <Pencil size={12} />
+                          </IconButton>
+                        </Popover.Trigger>
+                      )}
+                    </Flex>
+
+                    <Portal>
+                      <Popover.Positioner zIndex="popover">
+                        <Popover.Content width="300px" boxShadow="xl" borderRadius="lg" p={0} overflow="hidden">
+                          <Popover.Arrow>
+                            <Popover.ArrowTip />
+                          </Popover.Arrow>
+                          <Popover.Body p={3}>
+                            <Text fontSize="xs" fontWeight="bold" color="gray.600" mb={2}>
+                              Edit Deliverable
+                            </Text>
+                            <Textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              onKeyDown={handleEditKeyDown}
+                              placeholder="Enter deliverable text..."
+                              rows={3}
+                              fontSize="sm"
+                              resize="vertical"
+                              autoFocus
+                              _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
+                            />
+                            <Text fontSize="2xs" color="gray.400" mt={1}>
+                              Ctrl+Enter to save • Esc to cancel
+                            </Text>
+                            <Flex justify="flex-end" gap={1} mt={3}>
+                              <IconButton aria-label="Cancel" size="sm" variant="ghost" colorPalette="gray" onClick={handleEditCancel}>
+                                <X size={14} />
+                              </IconButton>
+                              <IconButton aria-label="Save" size="sm" variant="solid" colorPalette="green" onClick={handleEditSave} disabled={!editText.trim()}>
+                                <Check size={14} />
+                              </IconButton>
+                            </Flex>
+                          </Popover.Body>
+                        </Popover.Content>
+                      </Popover.Positioner>
+                    </Portal>
+                  </Popover.Root>
+
                   {isEditable && (
-                    <IconButton className="delete-btn" aria-label="Delete deliverable" size="xs" variant="ghost" colorPalette="red" onClick={() => setDeleteId(d.id)}>
+                    <IconButton className="action-btn" aria-label="Delete deliverable" size="xs" variant="ghost" colorPalette="red" onClick={() => setDeleteId(d.id)}>
                       <Trash2 size={12} />
                     </IconButton>
                   )}
