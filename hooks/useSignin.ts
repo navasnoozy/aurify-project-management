@@ -2,11 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance, { setAccessToken } from "@/lib/axios";
 import { AxiosError } from "axios";
 
-// Define inputs locally since we don't have @repo/schemas
-interface SigninInput {
-  email?: string;
-  password?: string;
-}
+import { SigninInput } from "@/lib/schemas/auth";
 
 interface ApiResponse {
   success: boolean;

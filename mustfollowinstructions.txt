@@ -9,6 +9,11 @@ Before every implementation, the following instructions must be followed:
 4. The project contains many reusable components. Before implementing new features, thoroughly review the entire project and check whether a suitable component already exists. If it does, reuse it to avoid redundancy and duplication.
 
 5. The project uses the Next.js App Router, not the Pages Router.
+
 6. The project using zod version 4 for validation with react hook form  , Zod version 4 has introduced several changes compared to previous versions, including breaking and minor changes. You must research and be aware of these changes before implementing anything.
 
 7. The project also using tanstack/react-query
+
+8. The project has rebust error handling system, you must follow it
+
+9 The project has rebust authentication system, you must follow it

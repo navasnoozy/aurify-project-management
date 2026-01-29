@@ -6,17 +6,7 @@ import { signinSchema, type SigninInput } from "@/lib/schemas/auth";
 import { useState } from "react";
 import useAppNavigate from "@/hooks/useAppNavigate";
 import useSigninUser from "@/hooks/useSignin";
-import { toast } from "react-toastify"; // Ensure ToastContainer is somewhere in layout or provider if using react-toastify.
-// OR use Chakra's toaster if available (components/ui/toaster.tsx exists). I'll use Chakra toaster if possible.
-// User code imported react-toastify. I installed it. But layout doesn't have ToastContainer.
-// I will use `react-toastify` for now but might need to add Container.
-// Actually, `components/ui/toaster.tsx` exists, so I should use that for "beautiful" Chakra integration.
-// But following user code uses `toast` from `react-toastify`.
-// I will stick to `react-toastify` as requested but I MUST add ToastContainer to Provider.
-// Wait, I didn't add ToastContainer to Provider. I should probably do that or add it here.
-// Actually, I'll switch to Chakra native toaster if I can, but user code specifically imported `react-toastify`.
-// I'll stick to `react-toastify` and wrap the provider later or just import `ToastContainer` in this page (not ideal) or layout.
-// I will use `react-toastify` and Add ToastContainer to Provider in next step.
+import { toast } from "react-toastify";
 
 import FormInputField from "@/components/FormInputField";
 import FormPasswordField from "@/components/FormPasswordField";
