@@ -1,6 +1,6 @@
 "use client";
 
-import { useSortable } from "@dnd-kit/sortable";
+import { useSortable, defaultAnimateLayoutChanges, AnimateLayoutChanges } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TimelineItem } from "./TimelineItem";
 import { motion } from "motion/react";
@@ -17,10 +17,20 @@ interface SortableTimelineItemProps {
   onEditItem: (item: RoadmapItem) => void;
 }
 
+// Custom animation config: animate during drag, but skip animation on drop
+const animateLayoutChanges: AnimateLayoutChanges = (args) => {
+  const { isSorting, wasDragging } = args;
+  // Skip animation when the item was just dropped (wasDragging)
+  if (wasDragging) {
+    return false;
+  }
+  return defaultAnimateLayoutChanges(args);
+};
+
 export const SortableTimelineItem = ({ item, index, onUpdateDeliverables, onUpdateStatus, isExpanded, onToggleExpand, onDeleteItem, onEditItem }: SortableTimelineItemProps) => {
   const { isOver, attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
-    animateLayoutChanges: () => false,
+    animateLayoutChanges,
   });
 
   const style = {

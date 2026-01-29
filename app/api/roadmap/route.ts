@@ -34,6 +34,10 @@ export async function GET() {
 
     // Fetch all items, sorted by order (ascending) then createdAt
     const items = await RoadmapItem.find({}).sort({ order: 1, createdAt: 1 });
+    console.log(
+      "GET /api/roadmap - Returning items with orders:",
+      items.map((i) => ({ id: i.id, order: i.order })),
+    );
 
     return NextResponse.json(items);
   } catch (error) {
