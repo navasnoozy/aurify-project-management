@@ -84,20 +84,22 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
         transform={{ base: "none", md: "translateX(-50%)" }}
         zIndex={10}
         bg="white"
-        p={{ base: 1.5, md: 1.5, "2xl": 2 }}
+        p={{ base: 1.5, md: 2, "2xl": 2.5 }}
         borderRadius="full"
         boxShadow="md"
         borderWidth="2px"
         borderColor="purple.400"
+        transition="all 0.2s"
+        _hover={{ ring: "3px", ringColor: "purple.200" }}
       >
         <Icon as={item.icon} fontSize={{ base: "lg", md: "lg", "2xl": "xl" }} color="purple.500" />
       </Box>
 
       {/* Content Card - positioned on left or right side */}
       <MotionBox
-        initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
+        initial={{ opacity: 0, x: isLeft ? -40 : 40 }}
         whileInView={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: index * 0.1 }}
+        transition={{ duration: 0.6, delay: index * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
         viewport={{ once: true }}
         width={{ base: "calc(100% - 60px)", md: "46%", lg: "44%" }}
         ml={{ base: "60px", md: isLeft ? "0" : "auto" }}
@@ -109,7 +111,15 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
         {/* Duration Label - Computed from deliverables */}
         <DurationLabel deliverables={item.deliverables} isLeft={isLeft} />
 
-        <Card.Root variant="elevated" boxShadow="md" borderLeftWidth={4} borderLeftColor={borderColor}>
+        <Card.Root
+          variant="elevated"
+          boxShadow="md"
+          borderLeftWidth={4}
+          borderLeftColor={borderColor}
+          borderRadius="xl"
+          transition="all 0.25s ease"
+          _hover={{ boxShadow: "xl", transform: "translateY(-2px)" }}
+        >
           <Card.Body gap={{ base: 2, md: 1.5, "2xl": 2 }}>
             <Flex justify="space-between" align="center" mb={2}>
               {/* Action Buttons (Auth-gated) */}
@@ -127,10 +137,10 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
               <StatusBadge status={item.status} onStatusChange={handleStatusChange} />
             </Flex>
 
-            <Text fontSize={{ base: "md", md: "sm", "2xl": "lg" }} fontWeight="bold" mt={1}>
+            <Text fontSize={{ base: "md", md: "sm", "2xl": "lg" }} fontWeight="bold" mt={1} letterSpacing="tight">
               {item.title}
             </Text>
-            <Text fontSize="xs" color="gray.600">
+            <Text fontSize="xs" color="gray.600" lineHeight="tall">
               {item.description}
             </Text>
 

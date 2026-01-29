@@ -63,6 +63,7 @@ export const Timeline = () => {
         title: item.title,
         description: item.description,
         status: item.status,
+        iconName: item.iconName as AddCardInput["iconName"],
       };
       createItemMutation.mutate(input);
     } else {
@@ -117,14 +118,15 @@ export const Timeline = () => {
             left={{ base: "39px", md: "50%" }}
             top="0"
             bottom="0" // Spans full height of this container
-            width="2px"
+            width="3px"
             bgGradient="to-b"
-            gradientFrom="blue.400"
-            gradientVia="purple.400"
-            gradientTo="green.400"
+            gradientFrom="blue.500"
+            gradientVia="purple.500"
+            gradientTo="green.500"
             transform={{ base: "none", md: "translateX(-50%)" }}
             zIndex={0}
             borderBottomRadius="full" // Soft end
+            boxShadow="0 0 12px rgba(139, 92, 246, 0.4)"
           />
 
           {items.map((item, index) => (

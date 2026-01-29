@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, Stack, Flex } from "@chakra-ui/react";
+import { Dialog, Stack, Flex, Box } from "@chakra-ui/react";
 import { Form } from "@/components/Form";
 import FormInputField from "@/components/FormInputField";
 import FormTextarea from "@/components/FormTextarea";
@@ -61,31 +61,52 @@ export const CardModal = ({ isOpen, onClose, onSave, initialData }: CardModalPro
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && onClose()}>
-      <Dialog.Backdrop />
+      <Dialog.Backdrop bg="blackAlpha.600" backdropFilter="blur(8px)" />
       <Dialog.Positioner>
-        <Dialog.Content maxW="500px">
-          <Dialog.Header>
-            <Dialog.Title>{title}</Dialog.Title>
+        <Dialog.Content maxW={{ base: "95vw", sm: "450px", md: "500px" }} borderRadius="2xl" boxShadow="2xl" overflow="hidden">
+          <Dialog.Header bgGradient="to-r" gradientFrom="blue.500" gradientTo="purple.500" py={4}>
+            <Dialog.Title color="white" fontSize={{ base: "lg", md: "xl" }} fontWeight="bold">
+              {title}
+            </Dialog.Title>
           </Dialog.Header>
-          <Dialog.Body>
+          <Dialog.Body py={6}>
             {/* 
               Force re-mount Form when initialData changes or isOpen toggles 
               to ensure defaultValues are reset correctly.
             */}
             <Form key={initialData?.id || "new"} onSubmit={handleSubmit} schema={addCardSchema} defaultValues={defaultValues} mode="onSubmit">
-              <Stack gap={4}>
+              <Stack gap={5}>
                 <FormInputField name="title" label="Title" placeholder="e.g., Feature Development" />
                 <FormTextarea name="description" label="Description" placeholder="Describe this milestone..." />
 
-                <FormIconPicker name="iconName" />
+                {/* Side-by-side layout for Icon and Status */}
+                <Flex direction={{ base: "column", sm: "row" }} gap={4} align={{ base: "stretch", sm: "flex-start" }}>
+                  <Box flex={1}>
+                    <FormIconPicker name="iconName" />
+                  </Box>
+                  <Box flex={1}>
+                    <FormRadioGroup name="status" label="Status" options={TASK_STATUSES} />
+                  </Box>
+                </Flex>
 
-                <FormRadioGroup name="status" label="Status" options={TASK_STATUSES} />
-
-                <Flex justify="flex-end" gap={2} mt={4}>
+                <Flex justify="flex-end" gap={3} mt={4} pt={4} borderTopWidth="1px" borderColor="gray.100">
                   <AppButton variant="ghost" onClick={onClose}>
                     Cancel
                   </AppButton>
-                  <AppButton type="submit" colorPalette="purple">
+                  <AppButton
+                    type="submit"
+                    bgGradient="to-r"
+                    gradientFrom="blue.500"
+                    gradientTo="purple.500"
+                    color="white"
+                    _hover={{
+                      transform: "translateY(-1px)",
+                      boxShadow: "lg",
+                      gradientFrom: "blue.600",
+                      gradientTo: "purple.600",
+                    }}
+                    transition="all 0.2s"
+                  >
                     {confirmText}
                   </AppButton>
                 </Flex>

@@ -72,15 +72,18 @@ export const AddCardPlaceholder = ({ onClick, isLeft }: AddCardPlaceholderProps)
           borderWidth="2px"
           borderStyle="dashed"
           borderColor={currentUser ? "gray.300" : "gray.200"}
-          borderRadius="xl"
-          bg={currentUser ? "gray.50" : "gray.50"} // Could be lighter check
-          transition="all 0.2s"
+          borderRadius="2xl"
+          bg={currentUser ? "gray.50" : "gray.50"}
+          transition="all 0.3s ease"
           _hover={
             currentUser
               ? {
-                  borderColor: "blue.400",
-                  bg: "blue.50",
+                  borderColor: "purple.400",
+                  bgGradient: "to-br",
+                  gradientFrom: "blue.50",
+                  gradientTo: "purple.50",
                   boxShadow: "lg",
+                  transform: "translateY(-2px)",
                 }
               : {}
           }
@@ -91,11 +94,23 @@ export const AddCardPlaceholder = ({ onClick, isLeft }: AddCardPlaceholderProps)
           justifyContent="center"
           gap={2}
           color={currentUser ? "gray.500" : "gray.400"}
-          _groupHover={currentUser ? { color: "blue.500" } : {}}
+          _groupHover={currentUser ? { color: "purple.600" } : {}}
         >
           {currentUser ? (
             <>
-              <Box p={3} borderRadius="full" bg="white" boxShadow="sm" _groupHover={{ bg: "blue.500", color: "white" }} transition="all 0.2s">
+              <Box
+                p={3}
+                borderRadius="full"
+                bg="white"
+                boxShadow="sm"
+                _groupHover={{
+                  bgGradient: "to-r",
+                  gradientFrom: "blue.500",
+                  gradientTo: "purple.500",
+                  color: "white",
+                }}
+                transition="all 0.3s"
+              >
                 <Plus size={24} strokeWidth={2.5} />
               </Box>
               <Text fontWeight="semibold" fontSize="md">
