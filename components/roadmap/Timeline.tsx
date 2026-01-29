@@ -8,6 +8,12 @@ import { ROADMAP_DATA, RoadmapItem, Deliverable, TaskStatus } from "./data";
 export const Timeline = () => {
   // Local state for frontend-only editing
   const [items, setItems] = useState<RoadmapItem[]>(ROADMAP_DATA);
+  // State for tracking which card is expanded (for laptop screens)
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const handleToggleExpand = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
 
   const handleUpdateDeliverables = (id: string, deliverables: Deliverable[]) => {
     setItems((prev) => prev.map((item) => (item.id === id ? { ...item, deliverables } : item)));
@@ -18,7 +24,7 @@ export const Timeline = () => {
   };
 
   return (
-    <Box position="relative" width="full" maxWidth="4xl" mx="auto" p={4}>
+    <Box position="relative" width="full" maxWidth={{ base: "full", md: "5xl", lg: "6xl" }} mx="auto" p={4}>
       {/* Central Line */}
       <Box
         position="absolute"
@@ -35,7 +41,16 @@ export const Timeline = () => {
 
       <Flex direction="column">
         {items.map((item, index) => (
-          <TimelineItem key={item.id} item={item} index={index} isLeft={index % 2 === 0} onUpdateDeliverables={handleUpdateDeliverables} onUpdateStatus={handleUpdateStatus} />
+          <TimelineItem
+            key={item.id}
+            item={item}
+            index={index}
+            isLeft={index % 2 === 0}
+            onUpdateDeliverables={handleUpdateDeliverables}
+            onUpdateStatus={handleUpdateStatus}
+            isExpanded={expandedId === item.id}
+            onToggleExpand={() => handleToggleExpand(item.id)}
+          />
         ))}
       </Flex>
     </Box>

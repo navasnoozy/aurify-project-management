@@ -43,12 +43,12 @@ export const RoadmapHeader = () => {
   if (!header) return null;
 
   return (
-    <Flex direction="column" align="center" textAlign="center" mb={16} px={4} position="relative">
+    <Flex direction="column" align="center" textAlign="center" mb={{ base: 6, md: 6, "2xl": 10 }} px={4} position="relative">
       <Flex align="center" gap={2} mb={2}>
         {/* Placeholder for Logo if needed */}
       </Flex>
 
-      <Heading size="4xl" fontWeight="black" mb={4} position="relative">
+      <Heading size={{ base: "2xl", md: "3xl", "2xl": "3xl" }} fontWeight="black" mb={3} position="relative">
         {header.titlePrefix}{" "}
         <Text as="span" color="purple.500">
           {header.highlight}
@@ -61,7 +61,7 @@ export const RoadmapHeader = () => {
         )}
       </Heading>
 
-      <Text fontSize="lg" color="gray.600" maxWidth="2xl">
+      <Text fontSize="md" color="gray.600" maxWidth="2xl">
         {header.subtitle}
       </Text>
 

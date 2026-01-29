@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Box, Card, Flex, Text, Icon } from "@chakra-ui/react";
 import { RoadmapItem, Deliverable, TaskStatus } from "./data";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { DurationLabel } from "./DurationLabel";
 import { DeliverablesList } from "./DeliverablesList";
 import { StatusBadge } from "./StatusBadge";
+import { ProgressGraph } from "./ProgressGraph";
 
 interface TimelineItemProps {
   item: RoadmapItem;
@@ -13,6 +15,8 @@ interface TimelineItemProps {
   isLeft: boolean;
   onUpdateDeliverables: (id: string, deliverables: Deliverable[]) => void;
   onUpdateStatus: (id: string, status: TaskStatus) => void;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
 const MotionBox = motion.create(Box);
@@ -34,7 +38,9 @@ const getStatusBorderColor = (status: TaskStatus): string => {
   }
 };
 
-export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpdateStatus }: TimelineItemProps) => {
+export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpdateStatus, isExpanded, onToggleExpand }: TimelineItemProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   const handleDeliverablesUpdate = (deliverables: Deliverable[]) => {
     onUpdateDeliverables(item.id, deliverables);
   };
@@ -47,15 +53,14 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
 
   return (
     <Flex
-      justify={isLeft ? "flex-end" : "flex-start"}
       position="relative"
       width="100%"
-      mb={10}
-      mt={8}
-      pl={isLeft ? 0 : { base: 8, md: 10 }}
-      pr={isLeft ? { base: 8, md: 10 } : 0}
+      mb={{ base: 3, md: 3, "2xl": 5 }}
+      mt={{ base: 2, md: 2, "2xl": 4 }}
       direction={{ base: "column", md: "row" }}
       align={{ base: "flex-start", md: "center" }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Icon Circle on the line */}
       <Box
@@ -65,47 +70,71 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
         transform={{ base: "none", md: "translateX(-50%)" }}
         zIndex={10}
         bg="white"
-        p={2}
+        p={{ base: 1.5, md: 1.5, "2xl": 2 }}
         borderRadius="full"
         boxShadow="md"
         borderWidth="2px"
         borderColor="purple.400"
       >
-        <Icon as={item.icon} fontSize="2xl" color="purple.500" />
+        <Icon as={item.icon} fontSize={{ base: "lg", md: "lg", "2xl": "xl" }} color="purple.500" />
       </Box>
 
-      {/* Content Card */}
+      {/* Content Card - positioned on left or right side */}
       <MotionBox
         initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
         whileInView={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: index * 0.1 }}
         viewport={{ once: true }}
-        width={{ base: "calc(100% - 60px)", md: "45%" }}
+        width={{ base: "calc(100% - 60px)", md: "46%", lg: "44%" }}
         ml={{ base: "60px", md: isLeft ? "0" : "auto" }}
         mr={{ base: "0", md: isLeft ? "auto" : "0" }}
+        pl={isLeft ? 0 : { base: 0, md: 8 }}
+        pr={isLeft ? { base: 0, md: 8 } : 0}
         position="relative"
       >
         {/* Duration Label - Computed from deliverables */}
         <DurationLabel deliverables={item.deliverables} isLeft={isLeft} />
 
-        <Card.Root variant="elevated" boxShadow="lg" borderLeftWidth={4} borderLeftColor={borderColor}>
-          <Card.Body gap={3}>
+        <Card.Root variant="elevated" boxShadow="md" borderLeftWidth={4} borderLeftColor={borderColor}>
+          <Card.Body gap={{ base: 2, md: 1.5, "2xl": 2 }}>
             <Flex justify="flex-end" align="center" mb={2}>
               <StatusBadge status={item.status} onStatusChange={handleStatusChange} />
             </Flex>
 
-            <Text fontSize="lg" fontWeight="bold" mt={1}>
+            <Text fontSize={{ base: "md", md: "sm", "2xl": "lg" }} fontWeight="bold" mt={1}>
               {item.title}
             </Text>
-            <Text fontSize="sm" color="gray.600">
+            <Text fontSize="xs" color="gray.600">
               {item.description}
             </Text>
 
-            {/* Editable Deliverables List */}
-            <DeliverablesList deliverables={item.deliverables} onUpdate={handleDeliverablesUpdate} />
+            <DeliverablesList deliverables={item.deliverables} onUpdate={handleDeliverablesUpdate} isExpanded={isExpanded} onToggleExpand={onToggleExpand} />
           </Card.Body>
         </Card.Root>
       </MotionBox>
+
+      {/* Progress Graph - Positioned on OPPOSITE side of the card */}
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, x: isLeft ? 30 : -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: isLeft ? 30 : -30 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              position: "absolute",
+              top: "50%",
+              transform: "translateY(-50%)",
+              left: isLeft ? "53%" : "auto",
+              right: isLeft ? "auto" : "53%",
+              zIndex: 15,
+              display: "block",
+            }}
+          >
+            <ProgressGraph deliverables={item.deliverables} status={item.status} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Flex>
   );
 };

@@ -2,17 +2,17 @@ import { IconType } from "react-icons";
 import { LuDatabase, LuUsers, LuShare2, LuCalendar, LuTrendingUp as LuBarChart, LuRocket } from "react-icons/lu";
 import { addDays, parseISO, differenceInDays } from "date-fns";
 
-export interface Deliverable {
-  id: string;
-  text: string;
-  completed: boolean;
-  startDate: string; // ISO date format
-  durationDays: number; // Duration in days
-}
-
 export type TaskStatus = "Not Started" | "Planning & Research" | "Implementing" | "On Hold" | "Completed";
 
 export const TASK_STATUSES: TaskStatus[] = ["Not Started", "Planning & Research", "Implementing", "On Hold", "Completed"];
+
+export interface Deliverable {
+  id: string;
+  text: string;
+  status: TaskStatus; // Each deliverable has its own status
+  startDate: string; // ISO date format
+  durationDays: number; // Duration in days
+}
 
 export interface RoadmapItem {
   id: string;
@@ -62,7 +62,7 @@ export const getNextAvailableDate = (deliverables: Deliverable[]): string => {
   return maxEnd ? maxEnd.toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
 };
 
-// Check if a date range overlaps with existing deliverables (excluding a specific id)
+// Check if a date range overlaps with existing deliverables
 export const isDateRangeOccupied = (deliverables: Deliverable[], startDate: string, durationDays: number, excludeId?: string): boolean => {
   const newStart = parseISO(startDate);
   const newEnd = addDays(newStart, durationDays);
@@ -73,13 +73,29 @@ export const isDateRangeOccupied = (deliverables: Deliverable[], startDate: stri
     const existingStart = parseISO(d.startDate);
     const existingEnd = addDays(existingStart, d.durationDays);
 
-    // Check for overlap
     if (newStart < existingEnd && newEnd > existingStart) {
       return true;
     }
   }
 
   return false;
+};
+
+// Calculate status counts for progress display
+export const getStatusCounts = (deliverables: Deliverable[]): Record<TaskStatus, number> => {
+  const counts: Record<TaskStatus, number> = {
+    "Not Started": 0,
+    "Planning & Research": 0,
+    Implementing: 0,
+    "On Hold": 0,
+    Completed: 0,
+  };
+
+  for (const d of deliverables) {
+    counts[d.status]++;
+  }
+
+  return counts;
 };
 
 export const ROADMAP_DATA: RoadmapItem[] = [
@@ -90,10 +106,10 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     status: "Completed",
     icon: LuDatabase,
     deliverables: [
-      { id: "1-1", text: "Database Schema Design", completed: true, startDate: "2025-01-15", durationDays: 15 },
-      { id: "1-2", text: "Authentication System", completed: true, startDate: "2025-01-30", durationDays: 15 },
-      { id: "1-3", text: "Basic UI Shell", completed: true, startDate: "2025-02-14", durationDays: 15 },
-      { id: "1-4", text: "API Architecture", completed: true, startDate: "2025-03-01", durationDays: 15 },
+      { id: "1-1", text: "Database Schema Design", status: "Completed", startDate: "2025-01-15", durationDays: 15 },
+      { id: "1-2", text: "Authentication System", status: "Completed", startDate: "2025-01-30", durationDays: 15 },
+      { id: "1-3", text: "Basic UI Shell", status: "Completed", startDate: "2025-02-14", durationDays: 15 },
+      { id: "1-4", text: "API Architecture", status: "Completed", startDate: "2025-03-01", durationDays: 15 },
     ],
   },
   {
@@ -103,10 +119,10 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     status: "Implementing",
     icon: LuUsers,
     deliverables: [
-      { id: "2-1", text: "Contact 360 View", completed: true, startDate: "2025-03-15", durationDays: 7 },
-      { id: "2-2", text: "Kanban Deal Pipelines", completed: false, startDate: "2025-03-22", durationDays: 8 },
-      { id: "2-3", text: "Activity Logging (Calls/Notes)", completed: false, startDate: "2025-03-30", durationDays: 7 },
-      { id: "2-4", text: "Import/Export Engines", completed: false, startDate: "2025-04-06", durationDays: 8 },
+      { id: "2-1", text: "Contact 360 View", status: "Completed", startDate: "2025-03-15", durationDays: 7 },
+      { id: "2-2", text: "Kanban Deal Pipelines", status: "Implementing", startDate: "2025-03-22", durationDays: 8 },
+      { id: "2-3", text: "Activity Logging (Calls/Notes)", status: "Planning & Research", startDate: "2025-03-30", durationDays: 7 },
+      { id: "2-4", text: "Import/Export Engines", status: "Not Started", startDate: "2025-04-06", durationDays: 8 },
     ],
   },
   {
@@ -116,10 +132,10 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     status: "Not Started",
     icon: LuShare2,
     deliverables: [
-      { id: "3-1", text: "LinkedIn API Integration", completed: false, startDate: "2025-04-15", durationDays: 10 },
-      { id: "3-2", text: "X (Twitter) API Integration", completed: false, startDate: "2025-04-25", durationDays: 10 },
-      { id: "3-3", text: "Instagram API Integration", completed: false, startDate: "2025-05-05", durationDays: 10 },
-      { id: "3-4", text: "Unified Inbox", completed: false, startDate: "2025-05-15", durationDays: 15 },
+      { id: "3-1", text: "LinkedIn API Integration", status: "Not Started", startDate: "2025-04-15", durationDays: 10 },
+      { id: "3-2", text: "X (Twitter) API Integration", status: "Not Started", startDate: "2025-04-25", durationDays: 10 },
+      { id: "3-3", text: "Instagram API Integration", status: "Not Started", startDate: "2025-05-05", durationDays: 10 },
+      { id: "3-4", text: "Unified Inbox", status: "Not Started", startDate: "2025-05-15", durationDays: 15 },
     ],
   },
   {
@@ -129,9 +145,9 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     status: "Not Started",
     icon: LuCalendar,
     deliverables: [
-      { id: "4-1", text: "Visual Calendar", completed: false, startDate: "2025-06-01", durationDays: 10 },
-      { id: "4-2", text: "Post Drafting", completed: false, startDate: "2025-06-11", durationDays: 10 },
-      { id: "4-3", text: "Multi-channel Scheduling", completed: false, startDate: "2025-06-21", durationDays: 10 },
+      { id: "4-1", text: "Visual Calendar", status: "Not Started", startDate: "2025-06-01", durationDays: 10 },
+      { id: "4-2", text: "Post Drafting", status: "Not Started", startDate: "2025-06-11", durationDays: 10 },
+      { id: "4-3", text: "Multi-channel Scheduling", status: "Not Started", startDate: "2025-06-21", durationDays: 10 },
     ],
   },
   {
@@ -141,9 +157,9 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     status: "Planning & Research",
     icon: LuBarChart,
     deliverables: [
-      { id: "5-1", text: "Engagement Metrics", completed: false, startDate: "2025-07-01", durationDays: 10 },
-      { id: "5-2", text: "Lead Conversion Tracking", completed: false, startDate: "2025-07-11", durationDays: 10 },
-      { id: "5-3", text: "Team Productivity Reports", completed: false, startDate: "2025-07-21", durationDays: 10 },
+      { id: "5-1", text: "Engagement Metrics", status: "Planning & Research", startDate: "2025-07-01", durationDays: 10 },
+      { id: "5-2", text: "Lead Conversion Tracking", status: "Not Started", startDate: "2025-07-11", durationDays: 10 },
+      { id: "5-3", text: "Team Productivity Reports", status: "Not Started", startDate: "2025-07-21", durationDays: 10 },
     ],
   },
   {
@@ -153,10 +169,10 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     status: "Not Started",
     icon: LuRocket,
     deliverables: [
-      { id: "6-1", text: "Closed Beta Testing", completed: false, startDate: "2025-08-01", durationDays: 7 },
-      { id: "6-2", text: "Bug Fixes", completed: false, startDate: "2025-08-08", durationDays: 8 },
-      { id: "6-3", text: "Performance Optimization", completed: false, startDate: "2025-08-16", durationDays: 7 },
-      { id: "6-4", text: "Public Release", completed: false, startDate: "2025-08-23", durationDays: 8 },
+      { id: "6-1", text: "Closed Beta Testing", status: "Not Started", startDate: "2025-08-01", durationDays: 7 },
+      { id: "6-2", text: "Bug Fixes", status: "Not Started", startDate: "2025-08-08", durationDays: 8 },
+      { id: "6-3", text: "Performance Optimization", status: "Not Started", startDate: "2025-08-16", durationDays: 7 },
+      { id: "6-4", text: "Public Release", status: "Not Started", startDate: "2025-08-23", durationDays: 8 },
     ],
   },
 ];

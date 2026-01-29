@@ -9,7 +9,7 @@ import { Header } from "@/components/Header";
 
 export default function Home() {
   return (
-    <Box minH="100vh" bg="gray.50" py={12}>
+    <Box minH="100vh" bg="gray.50" py={{ base: 8, md: 6, "2xl": 12 }}>
       {/* Top Header with User Auth */}
       <Header />
 

@@ -36,6 +36,7 @@ export const StatusBadge = ({ status, onStatusChange }: StatusBadgeProps) => {
           <Badge
             colorPalette={colorPalette}
             variant="solid"
+            size="sm"
             display="flex"
             alignItems="center"
             gap={1}
@@ -47,7 +48,7 @@ export const StatusBadge = ({ status, onStatusChange }: StatusBadgeProps) => {
             color={status === "Not Started" ? "white" : undefined}
           >
             {status}
-            <ChevronDown size={12} />
+            <ChevronDown size={10} />
           </Badge>
         </Box>
       </Menu.Trigger>

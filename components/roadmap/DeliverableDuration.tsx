@@ -20,16 +20,13 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate }: 
   const [editEndDate, setEditEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate end date from start + duration
   const endDate = addDays(parseISO(deliverable.startDate), deliverable.durationDays);
 
-  // Format display
   const formatDateShort = (date: Date | string) => {
     const d = typeof date === "string" ? parseISO(date) : date;
     return format(d, "MMM d");
   };
 
-  // Update editEndDate when popover opens or values change
   useEffect(() => {
     if (isOpen) {
       const calculatedEnd = addDays(parseISO(editStartDate), editDurationDays);
@@ -39,9 +36,8 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate }: 
   }, [isOpen, editStartDate, editDurationDays]);
 
   const validateAndUpdate = (startDate: string, durationDays: number) => {
-    // Check for overlaps
     if (isDateRangeOccupied(allDeliverables, startDate, durationDays, deliverable.id)) {
-      setError("This date range overlaps with another deliverable");
+      setError("Overlaps with another deliverable");
       return false;
     }
     setError(null);
@@ -88,59 +84,44 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate }: 
     setIsOpen(false);
   };
 
+  // Compact display
   const displayText = `${formatDateShort(deliverable.startDate)} - ${formatDateShort(endDate)} (${deliverable.durationDays}d)`;
 
   return (
     <Popover.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}>
       <Popover.Trigger asChild>
-        <Flex
-          align="center"
-          gap={1}
-          px={2}
-          py={0.5}
-          bg="blue.50"
-          borderRadius="md"
-          cursor="pointer"
-          borderWidth="1px"
-          borderColor="blue.200"
-          _hover={{ bg: "blue.100" }}
-          transition="all 0.2s"
-          fontSize="xs"
-        >
+        <Flex align="center" gap={1} px={1.5} py={0.5} bg="blue.50" borderRadius="md" cursor="pointer" borderWidth="1px" borderColor="blue.200" _hover={{ bg: "blue.100" }} transition="all 0.2s">
           <Calendar size={10} color="var(--chakra-colors-blue-500)" />
-          <Text fontSize="xs" color="blue.700">
+          <Text fontSize="2xs" color="blue.700" whiteSpace="nowrap">
             {displayText}
           </Text>
         </Flex>
       </Popover.Trigger>
       <Popover.Positioner>
-        <Popover.Content width="260px">
+        <Popover.Content width="240px">
           <Popover.Arrow>
             <Popover.ArrowTip />
           </Popover.Arrow>
-          <Popover.Body p={3}>
+          <Popover.Body p={2}>
             <Stack gap={2}>
               <Text fontWeight="bold" fontSize="xs">
                 Edit Duration
               </Text>
 
-              {/* Error message */}
               {error && (
-                <Text fontSize="xs" color="red.500" bg="red.50" p={2} borderRadius="sm">
+                <Text fontSize="2xs" color="red.500" bg="red.50" p={1} borderRadius="sm">
                   {error}
                 </Text>
               )}
 
-              {/* Start Date */}
               <Box>
-                <Text fontSize="xs" color="gray.600" mb={1}>
+                <Text fontSize="2xs" color="gray.600" mb={0.5}>
                   Start Date
                 </Text>
                 <Input type="date" size="xs" value={editStartDate} onChange={(e) => handleStartDateChange(e.target.value)} />
               </Box>
 
-              {/* Toggle */}
-              <Flex gap={2} fontSize="xs">
+              <Flex gap={2} fontSize="2xs">
                 <Text fontWeight={editMode === "duration" ? "bold" : "normal"} color={editMode === "duration" ? "blue.600" : "gray.500"} cursor="pointer" onClick={() => setEditMode("duration")}>
                   Duration
                 </Text>
@@ -150,25 +131,23 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate }: 
                 </Text>
               </Flex>
 
-              {/* Duration or End Date */}
               {editMode === "duration" ? (
                 <Box>
                   <Input type="number" size="xs" min={1} value={editDurationDays} onChange={(e) => handleDurationChange(e.target.value)} />
-                  <Text fontSize="xs" color="gray.500" mt={1}>
+                  <Text fontSize="2xs" color="gray.500" mt={0.5}>
                     End: {editEndDate ? format(parseISO(editEndDate), "MMM d, yyyy") : "-"}
                   </Text>
                 </Box>
               ) : (
                 <Box>
                   <Input type="date" size="xs" value={editEndDate} onChange={(e) => handleEndDateChange(e.target.value)} min={editStartDate} />
-                  <Text fontSize="xs" color="gray.500" mt={1}>
+                  <Text fontSize="2xs" color="gray.500" mt={0.5}>
                     Duration: {editDurationDays} days
                   </Text>
                 </Box>
               )}
 
-              {/* Actions */}
-              <Flex justify="flex-end" gap={2}>
+              <Flex justify="flex-end" gap={1}>
                 <IconButton aria-label="Cancel" size="xs" variant="ghost" onClick={handleCancel}>
                   <X size={12} />
                 </IconButton>
