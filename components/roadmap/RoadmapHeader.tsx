@@ -36,10 +36,6 @@ export const RoadmapHeader = () => {
     }
   };
 
-  if (isLoading) {
-    return <Spinner size="xl" />;
-  }
-
   if (!header) return null;
 
   return (

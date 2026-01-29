@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Box, Flex, Spinner, Center, Text } from "@chakra-ui/react";
 import { TimelineItem } from "./TimelineItem";
-import { AddCardButton } from "./AddCardButton";
+import { AddCardPlaceholder } from "./AddCardPlaceholder";
 import { CardModal } from "./CardModal";
 import { RoadmapItem, Deliverable, TaskStatus } from "./data";
 import { useRoadmapItems, useCreateRoadmapItem, useUpdateRoadmapItem, useDeleteRoadmapItem } from "@/hooks/useRoadmap";
@@ -107,40 +107,63 @@ export const Timeline = () => {
   }
 
   return (
-    <Box position="relative" width="full" maxWidth={{ base: "full", md: "5xl", lg: "6xl" }} mx="auto" p={4}>
-      {/* Central Line */}
-      <Box
-        position="absolute"
-        left={{ base: "32px", md: "50%" }}
-        top="0"
-        bottom="0"
-        width="2px"
-        bgGradient="to-b"
-        gradientFrom="blue.400"
-        gradientTo="green.400"
-        transform={{ base: "none", md: "translateX(-50%)" }}
-        zIndex={0}
-      />
-
+    <Box position="relative" width="full" maxWidth={{ base: "full", md: "5xl", lg: "6xl" }} mx="auto" p={4} pb={8}>
       <Flex direction="column">
-        {items.map((item, index) => (
-          <TimelineItem
-            key={item.id}
-            item={item}
-            index={index}
-            isLeft={index % 2 === 0}
-            onUpdateDeliverables={handleUpdateDeliverables}
-            onUpdateStatus={handleUpdateStatus}
-            isExpanded={expandedId === item.id}
-            onToggleExpand={() => handleToggleExpand(item.id)}
-            onDeleteItem={handleDeleteItem}
-            onEditItem={openEditModal}
+        {/* Active Items Section - Solid Line */}
+        <Box position="relative">
+          {/* Solid Gradient Line */}
+          <Box
+            position="absolute"
+            left={{ base: "39px", md: "50%" }}
+            top="0"
+            bottom="0" // Spans full height of this container
+            width="2px"
+            bgGradient="to-b"
+            gradientFrom="blue.400"
+            gradientVia="purple.400"
+            gradientTo="green.400"
+            transform={{ base: "none", md: "translateX(-50%)" }}
+            zIndex={0}
+            borderBottomRadius="full" // Soft end
           />
-        ))}
+
+          {items.map((item, index) => (
+            <TimelineItem
+              key={item.id}
+              item={item}
+              index={index}
+              isLeft={index % 2 === 0}
+              onUpdateDeliverables={handleUpdateDeliverables}
+              onUpdateStatus={handleUpdateStatus}
+              isExpanded={expandedId === item.id}
+              onToggleExpand={() => handleToggleExpand(item.id)}
+              onDeleteItem={handleDeleteItem}
+              onEditItem={openEditModal}
+            />
+          ))}
+        </Box>
+
+        {/* Future/Placeholder Section - Dashed Line Logic */}
+        <Box position="relative">
+          {/* Dashed Connector Line */}
+          <Box
+            position="absolute"
+            left={{ base: "39px", md: "50%" }}
+            top="0"
+            bottom="50%" // Go halfway down to the icon
+            width="2px"
+            borderLeftWidth="2px"
+            borderLeftStyle="dashed"
+            borderColor="gray.300"
+            transform={{ base: "none", md: "translateX(-50%)" }}
+            zIndex={0}
+          />
+
+          <AddCardPlaceholder onClick={openAddModal} isLeft={items.length % 2 === 0} />
+        </Box>
       </Flex>
 
-      {/* Add Card Button (Auth-gated inside component) */}
-      <AddCardButton onClick={openAddModal} />
+      {/* Removed old AddCardButton */}
 
       {/* Unified Card Modal */}
       <CardModal isOpen={modalState.isOpen} onClose={closeModal} onSave={handleSaveItem} initialData={modalState.mode === "edit" ? modalState.data : null} />

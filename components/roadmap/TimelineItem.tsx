@@ -143,15 +143,18 @@ export const TimelineItem = ({ item, index, isLeft, onUpdateDeliverables, onUpda
       <AnimatePresence>
         {isHovered && (
           <motion.div
-            initial={{ opacity: 0, x: isLeft ? 30 : -30, y: "-50%" }}
-            animate={{ opacity: 1, x: 0, y: "-50%" }}
-            exit={{ opacity: 0, x: isLeft ? 30 : -30, y: "-50%" }}
+            // Centering logic:
+            // If isLeft (Card Left), Graph is Right. Center of Right Column is 75%.
+            // If !isLeft (Card Right), Graph is Left. Center of Left Column is 25%.
+            initial={{ opacity: 0, x: "-50%", y: "calc(-50% + 20px)" }} // Slide up slightly
+            animate={{ opacity: 1, x: "-50%", y: "-50%" }} // Precise Center
+            exit={{ opacity: 0, x: "-50%", y: "calc(-50% + 20px)" }}
             transition={{ duration: 0.25 }}
             style={{
               position: "absolute",
               top: "50%",
-              left: isLeft ? "54%" : "auto",
-              right: isLeft ? "auto" : "54%",
+              left: isLeft ? "78%" : "22%", // Perfectly centered in the opposite column axis
+              // right is not needed if we rely on left for both cases
               zIndex: 15,
               display: "block",
             }}

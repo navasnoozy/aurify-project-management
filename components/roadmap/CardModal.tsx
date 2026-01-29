@@ -67,7 +67,7 @@ export const CardModal = ({ isOpen, onClose, onSave, initialData }: CardModalPro
               Force re-mount Form when initialData changes or isOpen toggles 
               to ensure defaultValues are reset correctly.
             */}
-            <Form key={initialData?.id || "new"} onSubmit={handleSubmit} schema={addCardSchema} defaultValues={defaultValues}>
+            <Form key={initialData?.id || "new"} onSubmit={handleSubmit} schema={addCardSchema} defaultValues={defaultValues} mode="onSubmit">
               <Stack gap={4}>
                 <FormInputField name="title" label="Title" placeholder="e.g., Feature Development" />
                 <FormTextarea name="description" label="Description" placeholder="Describe this milestone..." />
