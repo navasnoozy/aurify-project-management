@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Text, Popover, Input, Flex, IconButton, Stack } from "@chakra-ui/react";
+import { Box, Text, Popover, Input, Flex, IconButton, Stack, Portal } from "@chakra-ui/react";
 
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
@@ -144,83 +144,85 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
           </Text>
         </Flex>
       </Popover.Trigger>
-      <Popover.Positioner>
-        <Popover.Content width="260px">
-          <Popover.Arrow>
-            <Popover.ArrowTip />
-          </Popover.Arrow>
-          <Popover.Body p={3}>
-            <Stack gap={3}>
-              <Text fontWeight="bold" fontSize="xs">
-                Edit Duration
-              </Text>
-
-              {error && (
-                <Text fontSize="2xs" color="red.500" bg="red.50" p={1} borderRadius="sm">
-                  {error}
+      <Portal>
+        <Popover.Positioner zIndex="popover">
+          <Popover.Content width="260px">
+            <Popover.Arrow>
+              <Popover.ArrowTip />
+            </Popover.Arrow>
+            <Popover.Body p={3}>
+              <Stack gap={3}>
+                <Text fontWeight="bold" fontSize="xs">
+                  Edit Duration
                 </Text>
-              )}
 
-              <Box>
-                <Text fontSize="2xs" color="gray.600" mb={1}>
-                  Start Date
-                </Text>
-                <Input type="date" size="xs" value={editStartDate} onChange={(e) => handleStartDateChange(e.target.value)} />
-              </Box>
+                {error && (
+                  <Text fontSize="2xs" color="red.500" bg="red.50" p={1} borderRadius="sm">
+                    {error}
+                  </Text>
+                )}
 
-              <Flex gap={2} fontSize="2xs">
-                <Text fontWeight={editMode === "duration" ? "bold" : "normal"} color={editMode === "duration" ? "blue.600" : "gray.500"} cursor="pointer" onClick={() => setEditMode("duration")}>
-                  Duration
-                </Text>
-                <Text color="gray.400">|</Text>
-                <Text fontWeight={editMode === "endDate" ? "bold" : "normal"} color={editMode === "endDate" ? "blue.600" : "gray.500"} cursor="pointer" onClick={() => setEditMode("endDate")}>
-                  End Date
-                </Text>
-              </Flex>
-
-              {editMode === "duration" ? (
                 <Box>
-                  <Input type="number" size="xs" min={1} value={editDurationDays} onChange={(e) => handleDurationChange(e.target.value)} />
-                  <Text fontSize="2xs" color="gray.500" mt={1}>
-                    End: {editEndDate ? format(parseISO(editEndDate), "MMM d, yyyy") : "-"}
+                  <Text fontSize="2xs" color="gray.600" mb={1}>
+                    Start Date
                   </Text>
+                  <Input type="date" size="xs" value={editStartDate} onChange={(e) => handleStartDateChange(e.target.value)} />
                 </Box>
-              ) : (
-                <Box>
-                  <Input type="date" size="xs" value={editEndDate} onChange={(e) => handleEndDateChange(e.target.value)} min={editStartDate} />
-                  <Text fontSize="2xs" color="gray.500" mt={1}>
-                    Duration: {editDurationDays} working days
-                  </Text>
-                </Box>
-              )}
 
-              <Stack gap={2} mt={1}>
-                <Flex justify="space-between" align="center">
-                  <Text fontSize="2xs" color="gray.600">
-                    Exclude Holidays
+                <Flex gap={2} fontSize="2xs">
+                  <Text fontWeight={editMode === "duration" ? "bold" : "normal"} color={editMode === "duration" ? "blue.600" : "gray.500"} cursor="pointer" onClick={() => setEditMode("duration")}>
+                    Duration
                   </Text>
-                  <Switch size="xs" checked={excludeHolidays} onCheckedChange={(e: { checked: boolean }) => handleOptionChange("holidays", e.checked)} />
+                  <Text color="gray.400">|</Text>
+                  <Text fontWeight={editMode === "endDate" ? "bold" : "normal"} color={editMode === "endDate" ? "blue.600" : "gray.500"} cursor="pointer" onClick={() => setEditMode("endDate")}>
+                    End Date
+                  </Text>
                 </Flex>
-                <Flex justify="space-between" align="center">
-                  <Text fontSize="2xs" color="gray.600">
-                    Exclude Saturdays
-                  </Text>
-                  <Switch size="xs" checked={excludeSaturdays} onCheckedChange={(e: { checked: boolean }) => handleOptionChange("saturdays", e.checked)} />
+
+                {editMode === "duration" ? (
+                  <Box>
+                    <Input type="number" size="xs" min={1} value={editDurationDays} onChange={(e) => handleDurationChange(e.target.value)} />
+                    <Text fontSize="2xs" color="gray.500" mt={1}>
+                      End: {editEndDate ? format(parseISO(editEndDate), "MMM d, yyyy") : "-"}
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box>
+                    <Input type="date" size="xs" value={editEndDate} onChange={(e) => handleEndDateChange(e.target.value)} min={editStartDate} />
+                    <Text fontSize="2xs" color="gray.500" mt={1}>
+                      Duration: {editDurationDays} working days
+                    </Text>
+                  </Box>
+                )}
+
+                <Stack gap={2} mt={1}>
+                  <Flex justify="space-between" align="center">
+                    <Text fontSize="2xs" color="gray.600">
+                      Exclude Holidays
+                    </Text>
+                    <Switch size="xs" checked={excludeHolidays} onCheckedChange={(e: { checked: boolean }) => handleOptionChange("holidays", e.checked)} />
+                  </Flex>
+                  <Flex justify="space-between" align="center">
+                    <Text fontSize="2xs" color="gray.600">
+                      Exclude Saturdays
+                    </Text>
+                    <Switch size="xs" checked={excludeSaturdays} onCheckedChange={(e: { checked: boolean }) => handleOptionChange("saturdays", e.checked)} />
+                  </Flex>
+                </Stack>
+
+                <Flex justify="flex-end" gap={1} mt={2}>
+                  <IconButton aria-label="Cancel" size="xs" variant="ghost" onClick={handleCancel}>
+                    <X size={12} />
+                  </IconButton>
+                  <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleSave} disabled={!!error}>
+                    <Check size={12} />
+                  </IconButton>
                 </Flex>
               </Stack>
-
-              <Flex justify="flex-end" gap={1} mt={2}>
-                <IconButton aria-label="Cancel" size="xs" variant="ghost" onClick={handleCancel}>
-                  <X size={12} />
-                </IconButton>
-                <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleSave} disabled={!!error}>
-                  <Check size={12} />
-                </IconButton>
-              </Flex>
-            </Stack>
-          </Popover.Body>
-        </Popover.Content>
-      </Popover.Positioner>
+            </Popover.Body>
+          </Popover.Content>
+        </Popover.Positioner>
+      </Portal>
     </Popover.Root>
   );
 };
