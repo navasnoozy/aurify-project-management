@@ -8,11 +8,21 @@ export const roadmapHeaderSchema = z.object({
 
 export type RoadmapHeaderInput = z.infer<typeof roadmapHeaderSchema>;
 
+import { isValidIconName, DEFAULT_ICON_NAME } from "@/components/roadmap/iconConfig";
+
+// ... (header schema)
+
 // Add Card Schema
 export const addCardSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title must be less than 100 characters"),
   description: z.string().min(10, "Description must be at least 10 characters").max(500, "Description must be less than 500 characters"),
   status: z.enum(["Not Started", "Planning & Research", "Implementing", "On Hold", "Completed"]),
+  iconName: z
+    .string()
+    .refine((val) => isValidIconName(val), {
+      message: "Invalid icon selection",
+    })
+    .default(DEFAULT_ICON_NAME),
 });
 
 export type AddCardInput = z.infer<typeof addCardSchema>;

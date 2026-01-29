@@ -2,25 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { roadmapService } from "@/lib/services/roadmapService";
 import { RoadmapItem } from "@/components/roadmap/data";
 import { AddCardInput } from "@/lib/schemas/roadmap";
-import { LuDatabase, LuUsers, LuShare2, LuCalendar, LuTrendingUp, LuRocket } from "react-icons/lu";
-import { IconType } from "react-icons";
-
-// Icon mapping: String from DB -> React Component
-const ICON_MAP: Record<string, IconType> = {
-  LuDatabase: LuDatabase,
-  LuUsers: LuUsers,
-  LuShare2: LuShare2,
-  LuCalendar: LuCalendar,
-  LuBarChart: LuTrendingUp,
-  LuRocket: LuRocket,
-};
+import { ICON_MAP, DEFAULT_ICON_NAME } from "@/components/roadmap/iconConfig";
 
 // Transform Backend Item (iconName) -> Frontend Item (icon component)
-// We need a flexible type for the incoming data since it differs slightly from RoadmapItem
 const transformItem = (item: any): RoadmapItem => {
   return {
     ...item,
-    icon: ICON_MAP[item.iconName] || LuRocket, // Fallback to rocket
+    icon: ICON_MAP[item.iconName] || ICON_MAP[DEFAULT_ICON_NAME],
   };
 };
 
@@ -53,7 +41,7 @@ export const useCreateRoadmapItem = () => {
         const tempItem: RoadmapItem = {
           id: `temp-${Date.now()}`,
           ...newItemInput,
-          icon: LuRocket, // Default
+          icon: ICON_MAP[newItemInput.iconName] || ICON_MAP[DEFAULT_ICON_NAME],
           deliverables: [],
         };
         queryClient.setQueryData<RoadmapItem[]>(["roadmap"], (old) => [...(old || []), tempItem]);

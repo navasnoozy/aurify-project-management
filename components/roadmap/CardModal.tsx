@@ -9,6 +9,8 @@ import { AppButton } from "@/components/AppButton";
 import { addCardSchema, type AddCardInput } from "@/lib/schemas/roadmap";
 import { RoadmapItem, TaskStatus, TASK_STATUSES } from "./data";
 import { LuRocket } from "react-icons/lu";
+import { FormIconPicker } from "./FormIconPicker";
+import { DEFAULT_ICON_NAME, IconName } from "./iconConfig";
 
 interface CardModalProps {
   isOpen: boolean;
@@ -27,28 +29,31 @@ export const CardModal = ({ isOpen, onClose, onSave, initialData }: CardModalPro
     title: initialData?.title || "",
     description: initialData?.description || "",
     status: (initialData?.status as TaskStatus) || "Not Started",
+    iconName: (initialData?.iconName as IconName) || DEFAULT_ICON_NAME,
   };
 
   const handleSubmit = (data: AddCardInput) => {
     if (isEditMode && initialData) {
-      // Edit Mode: Update existing item
+      // Edit Mode
       const updatedItem: RoadmapItem = {
         ...initialData,
         title: data.title,
         description: data.description,
         status: data.status as TaskStatus,
+        iconName: data.iconName, // Pass iconName
       };
       onSave(updatedItem);
     } else {
-      // Add Mode: Create new item
+      // Add Mode
       const newItem: RoadmapItem = {
         id: `card-${Date.now()}`,
         title: data.title,
         description: data.description,
         status: data.status as TaskStatus,
-        icon: LuRocket, // Default icon
+        iconName: data.iconName, // Pass iconName
         deliverables: [],
-      };
+        // icon: handled by hook transform
+      } as any;
       onSave(newItem);
     }
     onClose();
@@ -71,6 +76,8 @@ export const CardModal = ({ isOpen, onClose, onSave, initialData }: CardModalPro
               <Stack gap={4}>
                 <FormInputField name="title" label="Title" placeholder="e.g., Feature Development" />
                 <FormTextarea name="description" label="Description" placeholder="Describe this milestone..." />
+
+                <FormIconPicker name="iconName" />
 
                 <FormRadioGroup name="status" label="Status" options={TASK_STATUSES} />
 

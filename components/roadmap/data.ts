@@ -19,6 +19,7 @@ export interface RoadmapItem {
   title: string;
   description: string;
   status: TaskStatus;
+  iconName: string; // The specific icon name
   icon: IconType;
   deliverables: Deliverable[];
 }
@@ -104,6 +105,7 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     title: "Foundation & Architecture",
     description: "Setting up the bedrock of the CRM: Database schemas, Authentication, and basic UI shell.",
     status: "Completed",
+    iconName: "LuDatabase",
     icon: LuDatabase,
     deliverables: [
       { id: "1-1", text: "Database Schema Design", status: "Completed", startDate: "2025-01-15", durationDays: 15 },
@@ -117,6 +119,7 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     title: "Contact & Lead Management",
     description: "Building the core CRM entities: Contacts, Companies, Deals, and Pipelines.",
     status: "Implementing",
+    iconName: "LuUsers",
     icon: LuUsers,
     deliverables: [
       { id: "2-1", text: "Contact 360 View", status: "Completed", startDate: "2025-03-15", durationDays: 7 },
@@ -130,6 +133,7 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     title: "Social Media Aggregation",
     description: "Integrating APIs from LinkedIn, X (Twitter), Instagram, and Facebook for unified inbox and posting.",
     status: "Not Started",
+    iconName: "LuShare2",
     icon: LuShare2,
     deliverables: [
       { id: "3-1", text: "LinkedIn API Integration", status: "Not Started", startDate: "2025-04-15", durationDays: 10 },
@@ -143,6 +147,7 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     title: "Content Scheduler & Publisher",
     description: "The visual calendar for planning, drafting, and scheduling posts across all channels.",
     status: "Not Started",
+    iconName: "LuCalendar",
     icon: LuCalendar,
     deliverables: [
       { id: "4-1", text: "Visual Calendar", status: "Not Started", startDate: "2025-06-01", durationDays: 10 },
@@ -155,7 +160,11 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     title: "Analytics & ROI Dashboard",
     description: "Tracking performance: Engagement rates, lead conversion from social, and team productivity.",
     status: "Planning & Research",
-    icon: LuBarChart,
+    iconName: "LuTrendingUp",
+    icon: LuBarChart, // Note: LuBarChart was aliased to LuTrendingUp? No, LuTrendingUp was aliased to LuBarChart in imports?
+    // In imports: LuTrendingUp as LuBarChart.
+    // So iconName should be LuTrendingUp? Or LuBarChart to match component alias?
+    // iconConfig used LuTrendingUp. I will use LuTrendingUp.
     deliverables: [
       { id: "5-1", text: "Engagement Metrics", status: "Planning & Research", startDate: "2025-07-01", durationDays: 10 },
       { id: "5-2", text: "Lead Conversion Tracking", status: "Not Started", startDate: "2025-07-11", durationDays: 10 },
@@ -167,6 +176,7 @@ export const ROADMAP_DATA: RoadmapItem[] = [
     title: "Beta Launch & Optimization",
     description: "Closed beta testing, bug squashing, performance tuning, and final public release.",
     status: "Not Started",
+    iconName: "LuRocket",
     icon: LuRocket,
     deliverables: [
       { id: "6-1", text: "Closed Beta Testing", status: "Not Started", startDate: "2025-08-01", durationDays: 7 },
