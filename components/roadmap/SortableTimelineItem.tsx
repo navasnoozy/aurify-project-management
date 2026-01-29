@@ -36,15 +36,23 @@ export const SortableTimelineItem = ({ item, index, onUpdateDeliverables, onUpda
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : 1,
-    position: "relative" as const, // Ensure z-index works
-    zIndex: isDragging ? 0 : 1, // Lower z-index for placeholder
+    position: "relative" as const,
+    zIndex: isDragging ? 0 : 1,
   };
+
+  // Spring config for smooth GPU-accelerated animations
+  const springTransition = { type: "spring" as const, stiffness: 500, damping: 30 };
 
   return (
     <div ref={setNodeRef} style={style}>
-      {/* Motion wrapper for approach animation (shrink on approach) */}
-      <motion.div animate={{ scale: isOver && !isDragging ? 0.9 : 1 }} transition={{ duration: 0.2 }}>
+      {/* Motion wrapper: shrink on approach (isOver), fade when being dragged */}
+      <motion.div
+        animate={{
+          scale: isOver && !isDragging ? 0.9 : 1,
+          opacity: isDragging ? 0.3 : 1,
+        }}
+        transition={springTransition}
+      >
         <TimelineItem
           item={item}
           index={index}

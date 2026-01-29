@@ -193,10 +193,10 @@ export const Timeline = () => {
         <DragOverlay dropAnimation={null}>
           {activeItem ? (
             <motion.div
-              initial={{ scale: 1, boxShadow: "none" }}
-              animate={{ scale: 0.85, boxShadow: "var(--chakra-shadows-2xl)" }}
-              transition={{ type: "spring", duration: 0.2 }}
-              style={{ width: "100%" }} // Ensure full width in overlay
+              initial={{ scale: 1 }}
+              animate={{ scale: 0.85, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+              transition={{ type: "spring" as const, stiffness: 400, damping: 25 }}
+              style={{ width: "100%", transformOrigin: "center center" }}
             >
               <TimelineItemPreview item={activeItem} />
             </motion.div>

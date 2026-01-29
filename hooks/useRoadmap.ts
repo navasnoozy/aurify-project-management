@@ -117,7 +117,6 @@ export const useReorderRoadmapItems = () => {
   return useMutation({
     mutationFn: roadmapService.reorder,
     onMutate: async (newItemIds) => {
-      console.log("Optimistic Reorder:", newItemIds);
       await queryClient.cancelQueries({ queryKey: ["roadmap"] });
       const previousItems = queryClient.getQueryData<RoadmapItem[]>(["roadmap"]);
 
