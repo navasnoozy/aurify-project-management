@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Box, Card, Flex, Text, Icon, IconButton, Dialog } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Trash2, Pencil } from "lucide-react";
-import { RoadmapItem, Deliverable, TaskStatus } from "./data";
+import { RoadmapItem, Deliverable, TaskStatus, computeCardDuration } from "./data";
 import { motion, AnimatePresence } from "motion/react";
+import { format, parseISO } from "date-fns";
 import { DurationLabel } from "./DurationLabel";
 import { DeliverablesList } from "./DeliverablesList";
 import { StatusBadge } from "./StatusBadge";
@@ -77,6 +78,23 @@ export const TimelineItem = ({
     }
   }, [forceTooltipOpen, isHovered]);
 
+  const launchDateInfo = useMemo(() => {
+    const computed = computeCardDuration(item.deliverables);
+    if (!computed) return null;
+
+    const endDate = parseISO(computed.endDate);
+    const startDate = parseISO(computed.startDate);
+
+    // Include year if different from start year
+    const includeYear = endDate.getFullYear() !== startDate.getFullYear();
+    const dateFormat = includeYear ? "MMM d, yyyy" : "MMM d";
+
+    return {
+      formatted: format(endDate, dateFormat),
+      fullDate: format(endDate, "MMMM d, yyyy"), // For aria-label
+    };
+  }, [item.deliverables]);
+
   const handleDeliverablesUpdate = useCallback(
     (deliverables: Deliverable[]) => {
       onUpdateDeliverables(item.id, deliverables);
@@ -141,7 +159,7 @@ export const TimelineItem = ({
           borderWidth="2px"
           borderColor="purple.400"
           transition="all 0.2s"
-          _hover={{ ring: "3px", ringColor: "purple.200" }}
+          _hover={{ borderColor: "purple.300", boxShadow: "0 0 0 3px var(--chakra-colors-purple-200)" }}
           cursor={isLoggedIn ? "grab" : "default"}
           _active={{ cursor: isLoggedIn ? "grabbing" : "default" }}
           // Pulsing glow animation when hint is active
@@ -159,6 +177,36 @@ export const TimelineItem = ({
           style={{ touchAction: "none" }}
         >
           <Icon as={item.icon} fontSize={{ base: "lg", md: "lg", "2xl": "xl" }} color="purple.500" />
+
+          {/* Launch Date Label */}
+          {launchDateInfo && (
+            <Text
+              as="span"
+              position="absolute"
+              top="100%"
+              left="50%"
+              transform="translateX(-50%)"
+              mt={{ base: 1, md: 1.5 }}
+              fontSize={{ base: "2xs", md: "xs" }}
+              fontWeight="bold"
+              color="purple.700"
+              bg="purple.50"
+              px={{ base: 1.5, md: 2 }}
+              py={0.5}
+              borderRadius="full"
+              boxShadow="sm"
+              borderWidth="1px"
+              borderColor="purple.200"
+              whiteSpace="nowrap"
+              zIndex={10}
+              pointerEvents="none"
+              letterSpacing="tight"
+              aria-label={`Launch date: ${launchDateInfo.fullDate}`}
+              title={launchDateInfo.fullDate}
+            >
+              {launchDateInfo.formatted}
+            </Text>
+          )}
         </Box>
       </Tooltip>
 
