@@ -1,5 +1,5 @@
 import { IconType } from "react-icons";
-import { addDays, parseISO, differenceInDays, format } from "date-fns";
+import { addDays, parseISO, differenceInDays, format, isValid } from "date-fns";
 import { addWorkingDays } from "@/lib/dateUtils";
 
 export type TaskStatus = "Not Started" | "Planning & Research" | "Implementing" | "On Hold" | "Completed";
@@ -36,11 +36,17 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
 
   for (const d of deliverables) {
     const start = parseISO(d.startDate);
+    // Skip deliverables with invalid start dates
+    if (!isValid(start)) continue;
+
     // Use working days calculation
     const end = addWorkingDays(start, d.durationDays, {
       excludeHolidays: d.excludeHolidays ?? true,
       excludeSaturdays: d.excludeSaturdays ?? false,
     });
+
+    // Skip if end date is invalid (can happen if addWorkingDays received bad input)
+    if (!isValid(end)) continue;
 
     if (!minStart || start < minStart) minStart = start;
     if (!maxEnd || end > maxEnd) maxEnd = end;
@@ -83,10 +89,16 @@ export const getNextAvailableDate = (deliverables: Deliverable[]): string => {
   let maxEnd: Date | null = null;
   for (const d of deliverables) {
     const start = parseISO(d.startDate);
+    // Skip invalid start dates
+    if (!isValid(start)) continue;
+
     const end = addWorkingDays(start, d.durationDays, {
       excludeHolidays: d.excludeHolidays ?? true,
       excludeSaturdays: d.excludeSaturdays ?? false,
     });
+    // Skip invalid end dates
+    if (!isValid(end)) continue;
+
     if (!maxEnd || end > maxEnd) maxEnd = end;
   }
 
@@ -131,19 +143,29 @@ export const isDateRangeOccupied = (
   options?: { excludeHolidays?: boolean; excludeSaturdays?: boolean },
 ): boolean => {
   const newStart = parseISO(startDate);
+  // If the new start date is invalid, we can't determine overlap, return false
+  if (!isValid(newStart)) return false;
+
   const newEnd = addWorkingDays(newStart, durationDays, {
     excludeHolidays: options?.excludeHolidays ?? true,
     excludeSaturdays: options?.excludeSaturdays ?? false,
   });
+  // If the new end date is invalid, return false
+  if (!isValid(newEnd)) return false;
 
   for (const d of deliverables) {
     if (excludeId && d.id === excludeId) continue;
 
     const existingStart = parseISO(d.startDate);
+    // Skip deliverables with invalid start dates
+    if (!isValid(existingStart)) continue;
+
     const existingEnd = addWorkingDays(existingStart, d.durationDays, {
       excludeHolidays: d.excludeHolidays ?? true,
       excludeSaturdays: d.excludeSaturdays ?? false,
     });
+    // Skip if existing end is invalid
+    if (!isValid(existingEnd)) continue;
 
     if (newStart < existingEnd && newEnd > existingStart) {
       return true;

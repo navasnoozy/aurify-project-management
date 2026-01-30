@@ -8,7 +8,7 @@ import { DeliverableDuration } from "./DeliverableDuration";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { addWorkingDays, getWorkingDays } from "@/lib/dateUtils";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 
 // dnd-kit imports
@@ -417,7 +417,9 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
                     // Recalculate end date if in duration mode
                     if (newEditMode === "duration" && e.target.value) {
                       const end = addWorkingDays(e.target.value, Math.max(0, newDuration - 1), { excludeHolidays: true, excludeSaturdays: false });
-                      setNewEndDate(format(end, "yyyy-MM-dd"));
+                      if (isValid(end)) {
+                        setNewEndDate(format(end, "yyyy-MM-dd"));
+                      }
                     }
                     // Validate
                     validateNewDeliverable(e.target.value, newDuration, allowOverlap);
@@ -472,14 +474,16 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
                       // Update end date preview
                       if (newStartDate) {
                         const end = addWorkingDays(newStartDate, Math.max(0, days - 1), { excludeHolidays: true, excludeSaturdays: false });
-                        setNewEndDate(format(end, "yyyy-MM-dd"));
+                        if (isValid(end)) {
+                          setNewEndDate(format(end, "yyyy-MM-dd"));
+                        }
                       }
                       // Validate
                       validateNewDeliverable(newStartDate, days, allowOverlap);
                     }}
                   />
                   <Text fontSize="2xs" color="gray.500" mt={0.5}>
-                    End: {newEndDate ? format(parseISO(newEndDate), "MMM d, yyyy") : "-"}
+                    End: {newEndDate && isValid(parseISO(newEndDate)) ? format(parseISO(newEndDate), "MMM d, yyyy") : "-"}
                   </Text>
                 </Flex>
               ) : (

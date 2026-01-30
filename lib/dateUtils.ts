@@ -1,4 +1,4 @@
-import { addDays, isSaturday, isSunday, isSameDay, parseISO, differenceInDays } from "date-fns";
+import { addDays, isSaturday, isSunday, isSameDay, parseISO, differenceInDays, isValid } from "date-fns";
 
 // Indian Public Holidays for 2025 and 2026 (Major National Holidays)
 // Source of truth for holiday calculations
@@ -42,6 +42,12 @@ export interface DateOptions {
 export const addWorkingDays = (startDate: string | Date, days: number, options: DateOptions = {}): Date => {
   const { excludeHolidays = true, excludeSaturdays = false } = options;
   let currentDate = typeof startDate === "string" ? parseISO(startDate) : startDate;
+
+  // Early return if the date is invalid to prevent crashes
+  if (!isValid(currentDate)) {
+    return new Date(NaN); // Return an explicit Invalid Date
+  }
+
   let daysAdded = 0;
 
   // If days is 0, return start date (or next working day? usually start date)
@@ -89,6 +95,12 @@ export const getWorkingDays = (startDate: string | Date, endDate: string | Date,
   const { excludeHolidays = true, excludeSaturdays = false } = options;
   let current = typeof startDate === "string" ? parseISO(startDate) : startDate;
   const end = typeof endDate === "string" ? parseISO(endDate) : endDate;
+
+  // Early return if either date is invalid
+  if (!isValid(current) || !isValid(end)) {
+    return 0;
+  }
+
   let workingDays = 0;
 
   // If start > end, return 0 or negative? usually 0 for duration
