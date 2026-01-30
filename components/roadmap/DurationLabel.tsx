@@ -44,7 +44,7 @@ export const DurationLabel = ({ deliverables, isLeft }: DurationLabelProps) => {
   }
 
   const formatDate = (dateStr: string) => {
-    return format(parseISO(dateStr), "MMM d");
+    return format(parseISO(dateStr), "MMM d, yyyy");
   };
 
   return (
