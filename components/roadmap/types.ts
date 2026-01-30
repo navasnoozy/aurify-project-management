@@ -24,6 +24,7 @@ export interface RoadmapItem {
   iconName: string; // The specific icon name
   icon: IconType;
   deliverables: Deliverable[];
+  order: number;
 }
 
 // Utility function to compute card duration from deliverables
@@ -171,3 +172,16 @@ export const getStatusCounts = (deliverables: Deliverable[]): Record<TaskStatus,
 
 // Export types and utilities only
 // ROADMAP_DATA has been moved to api/seed/roadmap/seedData.ts
+
+export type SuggestionStatus = "Pending" | "Under Review" | "Planned" | "In Progress" | "Needs More Info" | "Deferred" | "Rejected" | "Taken as Key Delivery";
+
+export const SUGGESTION_STATUSES: SuggestionStatus[] = ["Pending", "Under Review", "Planned", "In Progress", "Needs More Info", "Deferred", "Rejected", "Taken as Key Delivery"];
+
+export interface Suggestion {
+  id: string;
+  cardId: string;
+  content: string;
+  status: SuggestionStatus;
+  createdAt: string;
+  updatedAt: string;
+}

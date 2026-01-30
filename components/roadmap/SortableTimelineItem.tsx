@@ -16,6 +16,7 @@ interface SortableTimelineItemProps {
   onToggleExpand: () => void;
   onDeleteItem: (id: string) => void;
   onEditItem: (item: RoadmapItem) => void;
+  onOpenSuggestion: (item: RoadmapItem) => void;
   forceTooltipOpen?: boolean;
 }
 
@@ -29,7 +30,18 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) => {
 // Spring config for smooth GPU-accelerated animations
 const springTransition = { type: "spring" as const, stiffness: 500, damping: 30 };
 
-const SortableTimelineItemComponent = ({ item, index, onUpdateDeliverables, onUpdateStatus, isExpanded, onToggleExpand, onDeleteItem, onEditItem, forceTooltipOpen }: SortableTimelineItemProps) => {
+const SortableTimelineItemComponent = ({
+  item,
+  index,
+  onUpdateDeliverables,
+  onUpdateStatus,
+  isExpanded,
+  onToggleExpand,
+  onDeleteItem,
+  onEditItem,
+  onOpenSuggestion,
+  forceTooltipOpen,
+}: SortableTimelineItemProps) => {
   const { isOver, attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
     animateLayoutChanges,
@@ -70,6 +82,7 @@ const SortableTimelineItemComponent = ({ item, index, onUpdateDeliverables, onUp
           onToggleExpand={onToggleExpand}
           onDeleteItem={onDeleteItem}
           onEditItem={onEditItem}
+          onOpenSuggestion={onOpenSuggestion}
           dragHandleProps={{ ...listeners, ...attributes }}
           isDragging={isDragging}
           forceTooltipOpen={forceTooltipOpen}

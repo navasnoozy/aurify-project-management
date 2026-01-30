@@ -5,6 +5,7 @@ import { Box, Flex, Spinner, Center, Text } from "@chakra-ui/react";
 import { TimelineItem } from "./TimelineItem";
 import { AddCardPlaceholder } from "./AddCardPlaceholder";
 import { CardModal } from "./CardModal";
+import { SuggestionModal } from "./SuggestionModal";
 import { RoadmapItem, Deliverable, TaskStatus, computeProjectEndDate } from "./types";
 import { useRoadmapItems, useCreateRoadmapItem, useUpdateRoadmapItem, useDeleteRoadmapItem, useReorderRoadmapItems } from "@/hooks/useRoadmap";
 import { AddCardInput } from "@/lib/schemas/roadmap";
@@ -100,6 +101,19 @@ export const Timeline = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  const [suggestionModalOpen, setSuggestionModalOpen] = useState(false);
+  const [selectedSuggestionItem, setSelectedSuggestionItem] = useState<RoadmapItem | null>(null);
+
+  const openSuggestionModal = useCallback((item: RoadmapItem) => {
+    setSelectedSuggestionItem(item);
+    setSuggestionModalOpen(true);
+  }, []);
+
+  const closeSuggestionModal = useCallback(() => {
+    setSuggestionModalOpen(false);
+    setSelectedSuggestionItem(null);
+  }, []);
 
   const activeItem = items.find((i) => i.id === activeDragId) || null;
 
@@ -241,6 +255,7 @@ export const Timeline = () => {
                   onToggleExpand={() => handleToggleExpand(item.id)}
                   onDeleteItem={handleDeleteItem}
                   onEditItem={openEditModal}
+                  onOpenSuggestion={openSuggestionModal}
                   forceTooltipOpen={index === 0 && showHint}
                 />
               ))}
@@ -286,6 +301,7 @@ export const Timeline = () => {
         </Flex>
 
         <CardModal isOpen={modalState.isOpen} onClose={closeModal} onSave={handleSaveItem} initialData={modalState.mode === "edit" ? modalState.data : null} />
+        <SuggestionModal isOpen={suggestionModalOpen} onClose={closeSuggestionModal} item={selectedSuggestionItem} />
 
         <DragOverlay dropAnimation={null}>
           {activeItem ? (

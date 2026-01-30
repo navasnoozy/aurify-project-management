@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { Box, Card, Flex, Text, Icon, IconButton, Dialog } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, Expand, Maximize2 } from "lucide-react";
 import { RoadmapItem, Deliverable, TaskStatus, computeCardDuration } from "./types";
 import { motion, AnimatePresence } from "motion/react";
 import { format, parseISO } from "date-fns";
@@ -25,6 +25,7 @@ interface TimelineItemProps {
   onToggleExpand: () => void;
   onDeleteItem: (id: string) => void;
   onEditItem: (item: RoadmapItem) => void;
+  onOpenSuggestion: (item: RoadmapItem) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
   isDragging?: boolean;
   forceTooltipOpen?: boolean;
@@ -59,6 +60,7 @@ export const TimelineItem = ({
   onToggleExpand,
   onDeleteItem,
   onEditItem,
+  onOpenSuggestion,
   dragHandleProps,
   isDragging,
   forceTooltipOpen,
@@ -238,17 +240,24 @@ export const TimelineItem = ({
           <Card.Body gap={{ base: 2, md: 1.5, "2xl": 2 }}>
             <Flex justify="space-between" align="center" mb={2}>
               {/* Action Buttons (Auth-gated) */}
-              {isLoggedIn && (
-                <Flex gap={1}>
-                  <IconButton aria-label="Edit card" variant="ghost" colorPalette="blue" size="xs" onClick={() => onEditItem(item)}>
-                    <Pencil size={14} />
-                  </IconButton>
-                  <IconButton aria-label="Delete card" variant="ghost" colorPalette="red" size="xs" onClick={() => setIsDeleteDialogOpen(true)}>
-                    <Trash2 size={14} />
-                  </IconButton>
-                </Flex>
-              )}
-              {!isLoggedIn && <Box />}
+              {/* Action Buttons */}
+              <Flex gap={1}>
+                {/* View Details / Suggestions Button - Visible to ALL */}
+                <IconButton aria-label="View details & suggestions" variant="ghost" colorPalette="purple" size="xs" onClick={() => onOpenSuggestion(item)}>
+                  <Maximize2 size={14} />
+                </IconButton>
+
+                {isLoggedIn && (
+                  <>
+                    <IconButton aria-label="Edit card" variant="ghost" colorPalette="blue" size="xs" onClick={() => onEditItem(item)}>
+                      <Pencil size={14} />
+                    </IconButton>
+                    <IconButton aria-label="Delete card" variant="ghost" colorPalette="red" size="xs" onClick={() => setIsDeleteDialogOpen(true)}>
+                      <Trash2 size={14} />
+                    </IconButton>
+                  </>
+                )}
+              </Flex>
               <StatusBadge status={item.status} onStatusChange={handleStatusChange} />
             </Flex>
 
