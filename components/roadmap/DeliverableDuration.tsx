@@ -237,7 +237,7 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
   }
 
   return (
-    <Popover.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}>
+    <Popover.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)} autoFocus={false}>
       <Popover.Trigger asChild>
         <Flex align="center" gap={1} px={1.5} py={0.5} bg="blue.50" borderRadius="md" cursor="pointer" borderWidth="1px" borderColor="blue.200" _hover={{ bg: "blue.100" }} transition="all 0.2s">
           <Calendar size={10} color="var(--chakra-colors-blue-500)" />

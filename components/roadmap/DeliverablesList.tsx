@@ -100,6 +100,7 @@ const SortableDeliverable = memo(
             onOpenChange={(e) => {
               if (!e.open) onEditCancel();
             }}
+            autoFocus={false}
           >
             <Flex flex={1} align="center" gap={1}>
               <Text fontSize="xs" fontWeight="medium" flex={1} textDecoration={d.status === "Completed" ? "line-through" : "none"} color={d.status === "Completed" ? "gray.400" : "gray.700"}>
