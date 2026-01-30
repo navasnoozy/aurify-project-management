@@ -54,6 +54,25 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
   };
 };
 
+// Compute the latest end date across all roadmap items
+export const computeProjectEndDate = (items: RoadmapItem[]): string | null => {
+  if (!items || items.length === 0) return null;
+
+  let maxDate: Date | null = null;
+
+  for (const item of items) {
+    const cardDuration = computeCardDuration(item.deliverables);
+    if (cardDuration) {
+      const endDate = parseISO(cardDuration.endDate);
+      if (!maxDate || endDate > maxDate) {
+        maxDate = endDate;
+      }
+    }
+  }
+
+  return maxDate ? format(maxDate, "MMMM d, yyyy") : null;
+};
+
 // Utility to find next available start date after all existing deliverables
 export const getNextAvailableDate = (deliverables: Deliverable[]): string => {
   if (deliverables.length === 0) {

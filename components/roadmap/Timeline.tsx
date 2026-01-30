@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Box, Flex, Spinner, Center, Text } from "@chakra-ui/react";
 import { TimelineItem } from "./TimelineItem";
 import { AddCardPlaceholder } from "./AddCardPlaceholder";
 import { CardModal } from "./CardModal";
-import { RoadmapItem, Deliverable, TaskStatus } from "./data";
+import { RoadmapItem, Deliverable, TaskStatus, computeProjectEndDate } from "./data";
 import { useRoadmapItems, useCreateRoadmapItem, useUpdateRoadmapItem, useDeleteRoadmapItem, useReorderRoadmapItems } from "@/hooks/useRoadmap";
 import { AddCardInput } from "@/lib/schemas/roadmap";
+import { AppButton } from "@/components/AppButton";
+import { LuRocket } from "react-icons/lu";
 import {
   DndContext,
   closestCenter,
@@ -100,6 +102,10 @@ export const Timeline = () => {
   );
 
   const activeItem = items.find((i) => i.id === activeDragId) || null;
+
+  const projectEndDate = useMemo(() => {
+    return computeProjectEndDate(items);
+  }, [items]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
@@ -259,6 +265,24 @@ export const Timeline = () => {
 
             <AddCardPlaceholder onClick={openAddModal} isLeft={items.length % 2 === 0} />
           </Box>
+        </Flex>
+
+        {/* Launch V1.0 Button - At the end of the timeline */}
+        <Flex justify="center" mt={12} mb={16} direction="column" align="center" gap={2}>
+          <AppButton size="lg" colorPalette="green" boxShadow="xl" px={8}>
+            <LuRocket style={{ marginRight: "8px" }} />
+            Launch V1.0
+          </AppButton>
+
+          {/* Project End Date */}
+          {projectEndDate && (
+            <Text fontSize="sm" color="gray.600" fontWeight="medium">
+              Target Launch:{" "}
+              <Text as="span" fontWeight="bold" color="green.600">
+                {projectEndDate}
+              </Text>
+            </Text>
+          )}
         </Flex>
 
         <CardModal isOpen={modalState.isOpen} onClose={closeModal} onSave={handleSaveItem} initialData={modalState.mode === "edit" ? modalState.data : null} />
