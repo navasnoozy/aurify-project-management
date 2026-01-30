@@ -1,5 +1,5 @@
 import { IconType } from "react-icons";
-import { addDays, parseISO, differenceInDays } from "date-fns";
+import { addDays, parseISO, differenceInDays, format } from "date-fns";
 import { addWorkingDays } from "@/lib/dateUtils";
 
 export type TaskStatus = "Not Started" | "Planning & Research" | "Implementing" | "On Hold" | "Completed";
@@ -48,8 +48,8 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
   if (!minStart || !maxEnd) return null;
 
   return {
-    startDate: minStart.toISOString().split("T")[0],
-    endDate: maxEnd.toISOString().split("T")[0],
+    startDate: format(minStart, "yyyy-MM-dd"),
+    endDate: format(maxEnd, "yyyy-MM-dd"),
     durationDays: differenceInDays(maxEnd, minStart),
   };
 };
@@ -57,7 +57,7 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
 // Utility to find next available start date after all existing deliverables
 export const getNextAvailableDate = (deliverables: Deliverable[]): string => {
   if (deliverables.length === 0) {
-    return new Date().toISOString().split("T")[0];
+    return format(new Date(), "yyyy-MM-dd");
   }
 
   let maxEnd: Date | null = null;
@@ -70,7 +70,36 @@ export const getNextAvailableDate = (deliverables: Deliverable[]): string => {
     if (!maxEnd || end > maxEnd) maxEnd = end;
   }
 
-  return maxEnd ? maxEnd.toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+  if (!maxEnd) return format(new Date(), "yyyy-MM-dd");
+
+  // maxEnd is the EXCLUSIVE end (first day not used by any deliverable)
+  // We return it directly because it's already the next available start date
+  // But we need to ensure it's a working day (skip weekends/holidays)
+  const ensureWorkingDay = (date: Date): Date => {
+    let current = date;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const dayOfWeek = current.getDay();
+      // Sunday = 0, Saturday = 6
+      if (dayOfWeek === 0) {
+        // Sunday -> skip to Monday
+        current = addDays(current, 1);
+        continue;
+      }
+      // Check holidays
+      const dateStr = format(current, "yyyy-MM-dd");
+      const isHoliday = ["2025-01-26", "2025-03-14", "2025-08-15", "2025-10-02", "2025-12-25", "2026-01-26", "2026-08-15", "2026-10-02", "2026-12-25"].includes(dateStr);
+      if (isHoliday) {
+        current = addDays(current, 1);
+        continue;
+      }
+      break;
+    }
+    return current;
+  };
+
+  const nextStart = ensureWorkingDay(maxEnd);
+  return format(nextStart, "yyyy-MM-dd");
 };
 
 // Check if a date range overlaps with existing deliverables

@@ -3,10 +3,12 @@
 import { Box, Text, Flex, Input, IconButton, useBreakpointValue, Badge, Popover, Textarea, Portal } from "@chakra-ui/react";
 import { useState, memo } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, Check, X, Pencil, GripVertical } from "lucide-react";
-import { Deliverable, TaskStatus, getNextAvailableDate } from "./data";
+import { Deliverable, TaskStatus, getNextAvailableDate, isDateRangeOccupied } from "./data";
 import { DeliverableDuration } from "./DeliverableDuration";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { addWorkingDays, getWorkingDays } from "@/lib/dateUtils";
+import { format, parseISO } from "date-fns";
 
 // dnd-kit imports
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
@@ -178,6 +180,11 @@ SortableDeliverable.displayName = "SortableDeliverable";
 // Main Component
 export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onToggleExpand, isEditable = false }: DeliverablesListProps) => {
   const [newDeliverable, setNewDeliverable] = useState("");
+  const [newStartDate, setNewStartDate] = useState("");
+  const [newDuration, setNewDuration] = useState(7);
+  const [newEndDate, setNewEndDate] = useState("");
+  const [newEditMode, setNewEditMode] = useState<"duration" | "endDate">("duration");
+  const [newError, setNewError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -242,23 +249,67 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
     }
   };
 
+  // Validation helper for new deliverable
+  const validateNewDeliverable = (startDate: string, durationDays: number): boolean => {
+    if (!startDate) {
+      setNewError(null); // No error if no start date yet
+      return true;
+    }
+
+    if (durationDays < 1) {
+      setNewError("Duration must be at least 1 day");
+      return false;
+    }
+
+    const options = { excludeHolidays: true, excludeSaturdays: false };
+    if (isDateRangeOccupied(deliverables, startDate, durationDays, undefined, options)) {
+      setNewError("Overlaps with another deliverable");
+      return false;
+    }
+
+    setNewError(null);
+    return true;
+  };
+
   const handleAdd = () => {
     if (!newDeliverable.trim()) return;
 
-    const nextStartDate = getNextAvailableDate(deliverables);
+    const startDate = newStartDate || getNextAvailableDate(deliverables);
+    const duration = newDuration || 7;
+
+    // Final validation before save
+    if (!validateNewDeliverable(startDate, duration)) {
+      return;
+    }
 
     const newItem: Deliverable = {
       id: `${Date.now()}`,
       text: newDeliverable.trim(),
       status: "Not Started",
-      startDate: nextStartDate,
-      durationDays: 7,
+      startDate: startDate,
+      durationDays: duration,
       excludeHolidays: true,
       excludeSaturdays: false,
     };
     onUpdate([...deliverables, newItem]);
     setNewDeliverable("");
+    setNewStartDate("");
+    setNewDuration(7);
+    setNewEndDate("");
+    setNewError(null);
     setIsAdding(false);
+  };
+
+  // Initialize new deliverable defaults when opening add form
+  const handleOpenAdd = () => {
+    const nextDate = getNextAvailableDate(deliverables);
+    setNewStartDate(nextDate);
+    setNewDuration(7);
+    // Calculate initial end date
+    const initialEnd = addWorkingDays(nextDate, 6, { excludeHolidays: true, excludeSaturdays: false });
+    setNewEndDate(format(initialEnd, "yyyy-MM-dd"));
+    setNewError(null);
+    setIsAdding(true);
   };
 
   const handleDurationUpdate = (id: string, startDate: string, durationDays: number, options?: { excludeHolidays?: boolean; excludeSaturdays?: boolean }) => {
@@ -267,10 +318,12 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       handleAdd();
     } else if (e.key === "Escape") {
       setNewDeliverable("");
+      setNewStartDate("");
+      setNewDuration(7);
       setIsAdding(false);
     }
   };
@@ -307,7 +360,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
             </Badge>
           )}
           {isEditable && !isAdding && (
-            <IconButton aria-label="Add deliverable" size="xs" variant="ghost" colorPalette="blue" onClick={() => setIsAdding(true)}>
+            <IconButton aria-label="Add deliverable" size="xs" variant="ghost" colorPalette="blue" onClick={handleOpenAdd}>
               <Plus size={14} />
             </IconButton>
           )}
@@ -339,14 +392,131 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
           </SortableContext>
         </DndContext>
 
-        {/* Add New Input */}
+        {/* Add New Input - Enhanced with Date and Duration/End Date Toggle */}
         {isAdding && (
-          <Flex align="center" gap={2} mt={1}>
-            <Input size="sm" placeholder="New deliverable..." value={newDeliverable} onChange={(e) => setNewDeliverable(e.target.value)} onKeyDown={handleKeyDown} autoFocus />
-            <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleAdd} disabled={!newDeliverable.trim()}>
-              <Plus size={14} />
-            </IconButton>
-          </Flex>
+          <Box mt={2} p={2} bg="white" borderRadius="md" borderWidth="1px" borderColor="blue.200" boxShadow="sm">
+            <Flex direction="column" gap={2}>
+              {/* Title */}
+              <Input size="sm" placeholder="Deliverable title..." value={newDeliverable} onChange={(e) => setNewDeliverable(e.target.value)} onKeyDown={handleKeyDown} autoFocus />
+
+              {/* Start Date */}
+              <Flex direction="column">
+                <Text fontSize="2xs" color="gray.500" mb={0.5}>
+                  Start Date
+                </Text>
+                <Input
+                  type="date"
+                  size="xs"
+                  value={newStartDate}
+                  onChange={(e) => {
+                    setNewStartDate(e.target.value);
+                    // Recalculate end date if in duration mode
+                    if (newEditMode === "duration" && e.target.value) {
+                      const end = addWorkingDays(e.target.value, Math.max(0, newDuration - 1), { excludeHolidays: true, excludeSaturdays: false });
+                      setNewEndDate(format(end, "yyyy-MM-dd"));
+                    }
+                    // Validate
+                    validateNewDeliverable(e.target.value, newDuration);
+                  }}
+                />
+              </Flex>
+
+              {/* Error Display */}
+              {newError && (
+                <Text fontSize="2xs" color="red.500" bg="red.50" p={1} borderRadius="sm">
+                  {newError}
+                </Text>
+              )}
+
+              {/* Duration / End Date Toggle */}
+              <Flex gap={2} fontSize="2xs" mb={1}>
+                <Text
+                  fontWeight={newEditMode === "duration" ? "bold" : "normal"}
+                  color={newEditMode === "duration" ? "blue.600" : "gray.500"}
+                  cursor="pointer"
+                  onClick={() => setNewEditMode("duration")}
+                >
+                  Duration
+                </Text>
+                <Text color="gray.400">|</Text>
+                <Text fontWeight={newEditMode === "endDate" ? "bold" : "normal"} color={newEditMode === "endDate" ? "blue.600" : "gray.500"} cursor="pointer" onClick={() => setNewEditMode("endDate")}>
+                  End Date
+                </Text>
+              </Flex>
+
+              {/* Duration or End Date Input */}
+              {newEditMode === "duration" ? (
+                <Flex direction="column" w="100px">
+                  <Input
+                    type="number"
+                    size="xs"
+                    min={1}
+                    value={newDuration}
+                    onChange={(e) => {
+                      const days = parseInt(e.target.value) || 1;
+                      setNewDuration(days);
+                      // Update end date preview
+                      if (newStartDate) {
+                        const end = addWorkingDays(newStartDate, Math.max(0, days - 1), { excludeHolidays: true, excludeSaturdays: false });
+                        setNewEndDate(format(end, "yyyy-MM-dd"));
+                      }
+                      // Validate
+                      validateNewDeliverable(newStartDate, days);
+                    }}
+                  />
+                  <Text fontSize="2xs" color="gray.500" mt={0.5}>
+                    End: {newEndDate ? format(parseISO(newEndDate), "MMM d, yyyy") : "-"}
+                  </Text>
+                </Flex>
+              ) : (
+                <Flex direction="column">
+                  <Input
+                    type="date"
+                    size="xs"
+                    value={newEndDate}
+                    min={newStartDate}
+                    onChange={(e) => {
+                      setNewEndDate(e.target.value);
+                      // Calculate duration from end date
+                      if (newStartDate && e.target.value) {
+                        const days = getWorkingDays(newStartDate, e.target.value, { excludeHolidays: true, excludeSaturdays: false }) + 1;
+                        if (days > 0) {
+                          setNewDuration(days);
+                          // Validate
+                          validateNewDeliverable(newStartDate, days);
+                        }
+                      }
+                    }}
+                  />
+                  <Text fontSize="2xs" color="gray.500" mt={0.5}>
+                    Duration: {newDuration} working days
+                  </Text>
+                </Flex>
+              )}
+
+              {/* Action Buttons */}
+              <Flex justify="flex-end" gap={1} mt={1}>
+                <Text fontSize="2xs" color="gray.400" alignSelf="center" mr="auto">
+                  Ctrl+Enter to save
+                </Text>
+                <IconButton
+                  aria-label="Cancel"
+                  size="xs"
+                  variant="ghost"
+                  colorPalette="gray"
+                  onClick={() => {
+                    setIsAdding(false);
+                    setNewDeliverable("");
+                  }}
+                >
+                  <X size={12} />
+                </IconButton>
+                <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleAdd} disabled={!newDeliverable.trim() || !!newError}>
+                  <Check size={12} />
+                </IconButton>
+              </Flex>
+            </Flex>
+          </Box>
         )}
 
         {/* Empty state */}
