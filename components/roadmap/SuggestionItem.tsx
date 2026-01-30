@@ -3,10 +3,10 @@
 import { Box, Flex, Text, IconButton, Textarea, Badge } from "@chakra-ui/react";
 import { Suggestion, SuggestionStatus, SUGGESTION_STATUSES } from "./types";
 import { useState } from "react";
-import { Pencil, Trash2, Check, X, RotateCcw } from "lucide-react";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 import useCurrentUser from "@/hooks/useCurrentUser"; // Assuming this hook exists based on context
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import { StatusBadge } from "./StatusBadge"; // We might need a specific SuggestionStatusBadge or reuse
+
 import { motion } from "motion/react";
 import { Menu } from "@chakra-ui/react";
 import { AppButton } from "@/components/AppButton";

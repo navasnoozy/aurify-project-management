@@ -7,8 +7,7 @@ import { Deliverable } from "@/components/roadmap/types";
 import { Suggestion } from "@/components/roadmap/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
-import { Form } from "@/components/Form";
+import { useEffect, useMemo } from "react";
 
 import { parseISO, format } from "date-fns";
 import { addWorkingDays, getWorkingDays } from "@/lib/dateUtils";
@@ -60,19 +59,19 @@ export const PromoteToDeliverableDialog = ({ isOpen, onClose, suggestion, onProm
   const watchedStartDate = useWatch({ control: control, name: "startDate" });
   const watchedDuration = useWatch({ control: control, name: "duration" });
 
-  // Update End Date when Start Date or Duration changes (if in Duration mode)
-  useEffect(() => {
+  // Derive endDate from watchedStartDate and watchedDuration (no setState needed)
+  const calculatedEndDate = useMemo(() => {
     if (inputMode === "duration" && watchedStartDate && watchedDuration) {
       try {
         const start = parseISO(watchedStartDate);
-        // Using existing utility to calculate end date based on working days
         const end = addWorkingDays(start, watchedDuration);
-        setEndDate(format(end, "yyyy-MM-dd"));
-      } catch (e) {
-        // invalid date
+        return format(end, "yyyy-MM-dd");
+      } catch {
+        return "";
       }
     }
-  }, [watchedStartDate, watchedDuration, inputMode]);
+    return endDate;
+  }, [watchedStartDate, watchedDuration, inputMode, endDate]);
 
   // Update Duration when End Date changes (if in End Date mode)
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -7,7 +7,14 @@ import { useState } from "react";
 import { AppButton } from "@/components/AppButton";
 import { Send } from "lucide-react";
 import { toast } from "react-toastify";
-import { SuggestionStatus, RoadmapItem, Deliverable } from "./types";
+import { SuggestionStatus, RoadmapItem, Deliverable, Suggestion } from "./types";
+
+// Type for the promotion form data
+interface PromoteFormData {
+  text: string;
+  startDate?: string;
+  duration: number;
+}
 import { PromoteToDeliverableDialog } from "./PromoteToDeliverableDialog";
 import { useUpdateRoadmapItem } from "@/hooks/useRoadmap";
 
@@ -46,7 +53,7 @@ export const SuggestionSection = ({ cardId, roadmapItem }: SuggestionSectionProp
     );
   };
 
-  const [promoteSuggestion, setPromoteSuggestion] = useState<any | null>(null);
+  const [promoteSuggestion, setPromoteSuggestion] = useState<Suggestion | null>(null);
 
   const handleUpdate = (id: string, data: { content?: string; status?: SuggestionStatus }) => {
     // If setting status to "Taken as Key Delivery", don't update immediately. Open dialog.
@@ -65,11 +72,11 @@ export const SuggestionSection = ({ cardId, roadmapItem }: SuggestionSectionProp
     );
   };
 
-  const handlePromoteClick = (suggestion: any) => {
+  const handlePromoteClick = (suggestion: Suggestion) => {
     setPromoteSuggestion(suggestion);
   };
 
-  const handlePromoteConfirm = (formData: any) => {
+  const handlePromoteConfirm = (formData: PromoteFormData) => {
     // 1. Create Deliverable
     // We need to call an API to add a deliverable to the roadmap item.
     // OR we can pass a callback prop `onAddDeliverable` from the parent (Timeline -> Modal -> Section).
