@@ -1,6 +1,6 @@
 import { IconType } from "react-icons";
-import { addDays, parseISO, differenceInDays, format, isValid } from "date-fns";
-import { addWorkingDays } from "@/lib/dateUtils";
+import { addDays, parseISO, format, isValid } from "date-fns";
+import { addWorkingDays, getWorkingDays } from "@/lib/dateUtils";
 
 export type TaskStatus = "Not Started" | "Planning & Research" | "Implementing" | "On Hold" | "Completed";
 
@@ -34,10 +34,19 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
   let minStart: Date | null = null;
   let maxEnd: Date | null = null;
 
+  // Aggregate options: if ANY deliverable excludes holidays/saturdays, apply to total
+  let anyExcludesHolidays = false;
+  let anyExcludesSaturdays = false;
+
   for (const d of deliverables) {
     const start = parseISO(d.startDate);
     // Skip deliverables with invalid start dates
     if (!isValid(start)) continue;
+
+    // Check settings - if undefined, default is true for holidays, false for saturdays
+    // But we want to know if explicitly set or default suggests exclusion
+    if (d.excludeHolidays !== false) anyExcludesHolidays = true;
+    if (d.excludeSaturdays === true) anyExcludesSaturdays = true;
 
     // Use working days calculation
     const end = addWorkingDays(start, d.durationDays, {
@@ -57,7 +66,10 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
   return {
     startDate: format(minStart, "yyyy-MM-dd"),
     endDate: format(maxEnd, "yyyy-MM-dd"),
-    durationDays: differenceInDays(maxEnd, minStart),
+    durationDays: getWorkingDays(minStart, maxEnd, {
+      excludeHolidays: anyExcludesHolidays,
+      excludeSaturdays: anyExcludesSaturdays,
+    }),
   };
 };
 

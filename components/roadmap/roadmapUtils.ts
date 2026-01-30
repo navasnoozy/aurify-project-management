@@ -1,5 +1,5 @@
 import { IconType } from "react-icons";
-import { addDays, parseISO, differenceInDays, format } from "date-fns";
+import { addDays, parseISO, format } from "date-fns";
 import { addWorkingDays } from "@/lib/dateUtils";
 
 export type TaskStatus = "Not Started" | "Planning & Research" | "Implementing" | "On Hold" | "Completed";
@@ -27,32 +27,8 @@ export interface RoadmapItem {
 }
 
 // Utility function to compute card duration from deliverables
-export const computeCardDuration = (deliverables: Deliverable[]): { startDate: string; endDate: string; durationDays: number } | null => {
-  if (deliverables.length === 0) return null;
-
-  let minStart: Date | null = null;
-  let maxEnd: Date | null = null;
-
-  for (const d of deliverables) {
-    const start = parseISO(d.startDate);
-    // Use working days calculation
-    const end = addWorkingDays(start, d.durationDays, {
-      excludeHolidays: d.excludeHolidays ?? true,
-      excludeSaturdays: d.excludeSaturdays ?? false,
-    });
-
-    if (!minStart || start < minStart) minStart = start;
-    if (!maxEnd || end > maxEnd) maxEnd = end;
-  }
-
-  if (!minStart || !maxEnd) return null;
-
-  return {
-    startDate: format(minStart, "yyyy-MM-dd"),
-    endDate: format(maxEnd, "yyyy-MM-dd"),
-    durationDays: differenceInDays(maxEnd, minStart),
-  };
-};
+import { computeCardDuration } from "./types";
+export { computeCardDuration };
 
 // Compute the latest end date across all roadmap items
 export const computeProjectEndDate = (items: RoadmapItem[]): string | null => {
