@@ -27,4 +27,10 @@ export const suggestionService = {
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(`${BASE_URL}/${id}`);
   },
+
+  // Add comment to suggestion
+  addComment: async (id: string, data: { content: string; authorName?: string }): Promise<Suggestion> => {
+    const response = await axiosInstance.post(`${BASE_URL}/${id}/comments`, data);
+    return response.data;
+  },
 };

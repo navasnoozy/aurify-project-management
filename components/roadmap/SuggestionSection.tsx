@@ -145,7 +145,7 @@ export const SuggestionSection = ({ cardId, roadmapItem }: SuggestionSectionProp
             </Text>
           </Flex>
         ) : (
-          suggestions.map((s) => <SuggestionItem key={s.id} suggestion={s} onUpdate={handleUpdate} onDelete={handleDelete} onPromote={handlePromoteClick} />)
+          suggestions.map((s) => <SuggestionItem key={s.id} suggestion={s} cardId={cardId} onUpdate={handleUpdate} onDelete={handleDelete} onPromote={handlePromoteClick} />)
         )}
       </Stack>
 

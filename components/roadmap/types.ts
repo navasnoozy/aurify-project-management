@@ -177,11 +177,20 @@ export type SuggestionStatus = "Pending" | "Under Review" | "Planned" | "In Prog
 
 export const SUGGESTION_STATUSES: SuggestionStatus[] = ["Pending", "Under Review", "Planned", "In Progress", "Needs More Info", "Deferred", "Rejected", "Taken as Key Delivery"];
 
+export interface Comment {
+  id: string;
+  content: string;
+  authorName: string;
+  isAdmin: boolean;
+  createdAt: string;
+}
+
 export interface Suggestion {
   id: string;
   cardId: string;
   content: string;
   status: SuggestionStatus;
+  comments: Comment[];
   createdAt: string;
   updatedAt: string;
 }
