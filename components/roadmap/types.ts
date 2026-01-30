@@ -44,15 +44,26 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
     if (!isValid(start)) continue;
 
     // Check settings - if undefined, default is true for holidays, false for saturdays
-    // But we want to know if explicitly set or default suggests exclusion
     if (d.excludeHolidays !== false) anyExcludesHolidays = true;
     if (d.excludeSaturdays === true) anyExcludesSaturdays = true;
 
-    // Use working days calculation
-    const end = addWorkingDays(start, d.durationDays, {
+    const options = {
       excludeHolidays: d.excludeHolidays ?? true,
       excludeSaturdays: d.excludeSaturdays ?? false,
-    });
+    };
+
+    // Determine if the start date itself is a working day
+    const isStartWorking = getWorkingDays(start, start, options) === 1;
+
+    // Inclusive End Date Logic:
+    // If Start is Working: We need (Duration - 1) *additional* days.
+    // If Start is Non-Working: We need (Duration) days (since the first 'add' step consumes the first actual working day).
+    const daysToAdd = isStartWorking ? Math.max(0, d.durationDays - 1) : d.durationDays;
+
+    // Check if we essentially have a 0 duration valid task (e.g., 0 days entered? though usually min 1)
+    // If duration is 0, logic handles it naturally (max(0,-1)=0).
+
+    const end = addWorkingDays(start, daysToAdd, options);
 
     // Skip if end date is invalid (can happen if addWorkingDays received bad input)
     if (!isValid(end)) continue;
@@ -66,7 +77,7 @@ export const computeCardDuration = (deliverables: Deliverable[]): { startDate: s
   return {
     startDate: format(minStart, "yyyy-MM-dd"),
     endDate: format(maxEnd, "yyyy-MM-dd"),
-    durationDays: getWorkingDays(minStart, maxEnd, {
+    durationDays: getWorkingDays(addDays(minStart, -1), maxEnd, {
       excludeHolidays: anyExcludesHolidays,
       excludeSaturdays: anyExcludesSaturdays,
     }),
@@ -205,7 +216,6 @@ export const getStatusCounts = (deliverables: Deliverable[]): Record<TaskStatus,
 };
 
 // Export types and utilities only
-// ROADMAP_DATA has been moved to api/seed/roadmap/seedData.ts
 
 export type SuggestionStatus = "Pending" | "Under Review" | "Planned" | "In Progress" | "Needs More Info" | "Deferred" | "Rejected" | "Taken as Key Delivery";
 

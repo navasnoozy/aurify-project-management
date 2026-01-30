@@ -146,4 +146,3 @@ export const getStatusCounts = (deliverables: Deliverable[]): Record<TaskStatus,
 };
 
 // Export types and utilities only
-// ROADMAP_DATA has been moved to api/seed/roadmap/seedData.ts
