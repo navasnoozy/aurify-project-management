@@ -316,7 +316,7 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
                   <IconButton aria-label="Cancel" size="xs" variant="ghost" onClick={handleCancel}>
                     <X size={12} />
                   </IconButton>
-                  <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleSave} disabled={!!error}>
+                  <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleSave} disabled={!!error && !allowOverlap}>
                     <Check size={12} />
                   </IconButton>
                 </Flex>
