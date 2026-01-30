@@ -92,7 +92,13 @@ export const SuggestionItem = ({ suggestion, onUpdate, onDelete, onPromote }: Su
         {isEditing ? (
           <Box>
             <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} size="sm" rows={3} autoFocus mb={2} />
-            <Flex gap={2} justify="flex-end">
+            <Flex gap={2} justify="flex-end" align="center">
+              {/* Delete - Icon only, Admin only */}
+              {isAdmin && (
+                <IconButton size="xs" variant="ghost" colorPalette="red" aria-label="Delete" onClick={() => setIsDeleteDialogOpen(true)}>
+                  <Trash2 size={14} />
+                </IconButton>
+              )}
               <IconButton size="xs" variant="ghost" aria-label="Cancel" onClick={handleCancelEdit}>
                 <X size={14} />
               </IconButton>
@@ -107,24 +113,24 @@ export const SuggestionItem = ({ suggestion, onUpdate, onDelete, onPromote }: Su
           </Text>
         )}
 
-        {/* Action Footer */}
-        <Flex justify="flex-end" gap={2} mt={3} pt={2} borderTopWidth="1px" borderColor="gray.50">
-          {/* Edit - Available to ALL */}
-          {!isEditing && (
+        {/* Action Footer - Only visible when NOT editing */}
+        {!isEditing && (
+          <Flex justify="flex-end" gap={2} mt={3} pt={2} borderTopWidth="1px" borderColor="gray.50">
+            {/* Edit - Available to ALL */}
             <AppButton size="xs" variant="ghost" colorPalette="gray" onClick={() => setIsEditing(true)}>
               <Pencil size={12} style={{ marginRight: "4px" }} />
               Edit
             </AppButton>
-          )}
 
-          {/* Delete - Available to ADMIN only */}
-          {isAdmin && (
-            <AppButton size="xs" variant="ghost" colorPalette="red" onClick={() => setIsDeleteDialogOpen(true)}>
-              <Trash2 size={12} style={{ marginRight: "4px" }} />
-              Delete
-            </AppButton>
-          )}
-        </Flex>
+            {/* Delete - Available to ADMIN only */}
+            {isAdmin && (
+              <AppButton size="xs" variant="ghost" colorPalette="red" onClick={() => setIsDeleteDialogOpen(true)}>
+                <Trash2 size={12} style={{ marginRight: "4px" }} />
+                Delete
+              </AppButton>
+            )}
+          </Flex>
+        )}
       </Box>
 
       <ConfirmationDialog
