@@ -9,6 +9,7 @@ import { StatusBadge } from "./StatusBadge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { addWorkingDays, getWorkingDays } from "@/lib/dateUtils";
 import { format, parseISO } from "date-fns";
+import { Switch } from "@/components/ui/switch";
 
 // dnd-kit imports
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
@@ -185,6 +186,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
   const [newEndDate, setNewEndDate] = useState("");
   const [newEditMode, setNewEditMode] = useState<"duration" | "endDate">("duration");
   const [newError, setNewError] = useState<string | null>(null);
+  const [allowOverlap, setAllowOverlap] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -250,7 +252,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
   };
 
   // Validation helper for new deliverable
-  const validateNewDeliverable = (startDate: string, durationDays: number): boolean => {
+  const validateNewDeliverable = (startDate: string, durationDays: number, skipOverlapCheck = false): boolean => {
     if (!startDate) {
       setNewError(null); // No error if no start date yet
       return true;
@@ -262,7 +264,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
     }
 
     const options = { excludeHolidays: true, excludeSaturdays: false };
-    if (isDateRangeOccupied(deliverables, startDate, durationDays, undefined, options)) {
+    if (!skipOverlapCheck && isDateRangeOccupied(deliverables, startDate, durationDays, undefined, options)) {
       setNewError("Overlaps with another deliverable");
       return false;
     }
@@ -277,8 +279,8 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
     const startDate = newStartDate || getNextAvailableDate(deliverables);
     const duration = newDuration || 7;
 
-    // Final validation before save
-    if (!validateNewDeliverable(startDate, duration)) {
+    // Final validation before save (pass allowOverlap state)
+    if (!validateNewDeliverable(startDate, duration, allowOverlap)) {
       return;
     }
 
@@ -297,6 +299,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
     setNewDuration(7);
     setNewEndDate("");
     setNewError(null);
+    setAllowOverlap(false); // Reset permission
     setIsAdding(false);
   };
 
@@ -309,6 +312,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
     const initialEnd = addWorkingDays(nextDate, 6, { excludeHolidays: true, excludeSaturdays: false });
     setNewEndDate(format(initialEnd, "yyyy-MM-dd"));
     setNewError(null);
+    setAllowOverlap(false);
     setIsAdding(true);
   };
 
@@ -416,16 +420,26 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
                       setNewEndDate(format(end, "yyyy-MM-dd"));
                     }
                     // Validate
-                    validateNewDeliverable(e.target.value, newDuration);
+                    validateNewDeliverable(e.target.value, newDuration, allowOverlap);
                   }}
                 />
               </Flex>
 
               {/* Error Display */}
               {newError && (
-                <Text fontSize="2xs" color="red.500" bg="red.50" p={1} borderRadius="sm">
-                  {newError}
-                </Text>
+                <Flex align="center" justify="space-between" bg="red.50" p={2} borderRadius="md" borderWidth="1px" borderColor="red.200">
+                  <Text fontSize="xs" color="red.600" fontWeight="medium">
+                    {newError}
+                  </Text>
+                  {newError.includes("Overlaps") && (
+                    <Flex align="center" gap={1.5}>
+                      <Text fontSize="xs" color="red.600">
+                        Allow?
+                      </Text>
+                      <Switch size="xs" colorPalette="red" checked={allowOverlap} onCheckedChange={(e) => setAllowOverlap(e.checked)} />
+                    </Flex>
+                  )}
+                </Flex>
               )}
 
               {/* Duration / End Date Toggle */}
@@ -461,7 +475,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
                         setNewEndDate(format(end, "yyyy-MM-dd"));
                       }
                       // Validate
-                      validateNewDeliverable(newStartDate, days);
+                      validateNewDeliverable(newStartDate, days, allowOverlap);
                     }}
                   />
                   <Text fontSize="2xs" color="gray.500" mt={0.5}>
@@ -483,7 +497,7 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
                         if (days > 0) {
                           setNewDuration(days);
                           // Validate
-                          validateNewDeliverable(newStartDate, days);
+                          validateNewDeliverable(newStartDate, days, allowOverlap);
                         }
                       }
                     }}
@@ -507,11 +521,12 @@ export const DeliverablesList = memo(({ deliverables, onUpdate, isExpanded, onTo
                   onClick={() => {
                     setIsAdding(false);
                     setNewDeliverable("");
+                    setAllowOverlap(false);
                   }}
                 >
                   <X size={12} />
                 </IconButton>
-                <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleAdd} disabled={!newDeliverable.trim() || !!newError}>
+                <IconButton aria-label="Save" size="xs" colorPalette="green" onClick={handleAdd} disabled={!newDeliverable.trim() || (!!newError && !allowOverlap)}>
                   <Check size={12} />
                 </IconButton>
               </Flex>

@@ -26,6 +26,7 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
   const [editMode, setEditMode] = useState<"duration" | "endDate">("duration");
   const [editEndDate, setEditEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [allowOverlap, setAllowOverlap] = useState(false);
 
   // Calculate Inclusive End Date for Display (Duration - 1 working day)
   // If duration is 1, end date is same as start date (conceptually)
@@ -48,8 +49,8 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
     }
   }, [isOpen, editStartDate, editDurationDays, excludeHolidays, excludeSaturdays]);
 
-  const validateAndUpdate = (startDate: string, durationDays: number, currentOptions: { excludeHolidays: boolean; excludeSaturdays: boolean }) => {
-    if (isDateRangeOccupied(allDeliverables, startDate, durationDays, deliverable.id, currentOptions)) {
+  const validateAndUpdate = (startDate: string, durationDays: number, currentOptions: { excludeHolidays: boolean; excludeSaturdays: boolean }, skipOverlapCheck = false) => {
+    if (!skipOverlapCheck && isDateRangeOccupied(allDeliverables, startDate, durationDays, deliverable.id, currentOptions)) {
       setError("Overlaps with another deliverable");
       return false;
     }
@@ -62,7 +63,7 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
     setEditDurationDays(days);
     const newEnd = addWorkingDays(editStartDate, Math.max(0, days - 1), { excludeHolidays, excludeSaturdays });
     setEditEndDate(format(newEnd, "yyyy-MM-dd"));
-    validateAndUpdate(editStartDate, days, { excludeHolidays, excludeSaturdays });
+    validateAndUpdate(editStartDate, days, { excludeHolidays, excludeSaturdays }, allowOverlap);
   };
 
   const handleEndDateChange = (value: string) => {
@@ -158,7 +159,7 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
 
       if (days > 0) {
         setEditDurationDays(days);
-        validateAndUpdate(editStartDate, days, { excludeHolidays, excludeSaturdays });
+        validateAndUpdate(editStartDate, days, { excludeHolidays, excludeSaturdays }, allowOverlap);
       }
     }
   };
@@ -167,7 +168,7 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
     setEditStartDate(value);
     const newEnd = addWorkingDays(value, Math.max(0, editDurationDays - 1), { excludeHolidays, excludeSaturdays });
     setEditEndDate(format(newEnd, "yyyy-MM-dd"));
-    validateAndUpdate(value, editDurationDays, { excludeHolidays, excludeSaturdays });
+    validateAndUpdate(value, editDurationDays, { excludeHolidays, excludeSaturdays }, allowOverlap);
   };
 
   const handleOptionChange = (key: "holidays" | "saturdays", checked: boolean) => {
@@ -189,14 +190,15 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
       const newEnd = addWorkingDays(editStartDate, Math.max(0, editDurationDays - 1), { excludeHolidays: newHolidays, excludeSaturdays: newSaturdays });
       setEditEndDate(format(newEnd, "yyyy-MM-dd"));
     }
-    validateAndUpdate(editStartDate, editDurationDays, { excludeHolidays: newHolidays, excludeSaturdays: newSaturdays });
+    validateAndUpdate(editStartDate, editDurationDays, { excludeHolidays: newHolidays, excludeSaturdays: newSaturdays }, allowOverlap);
   };
 
   const handleSave = () => {
     const options = { excludeHolidays, excludeSaturdays };
-    if (validateAndUpdate(editStartDate, editDurationDays, options)) {
+    if (validateAndUpdate(editStartDate, editDurationDays, options, allowOverlap)) {
       onUpdate(editStartDate, editDurationDays, options);
       setIsOpen(false);
+      setAllowOverlap(false); // Reset on save
     }
   };
 
@@ -206,6 +208,7 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
     setExcludeHolidays(deliverable.excludeHolidays ?? true);
     setExcludeSaturdays(deliverable.excludeSaturdays ?? false);
     setError(null);
+    setAllowOverlap(false); // Reset on cancel
     setIsOpen(false);
   };
 
@@ -246,9 +249,19 @@ export const DeliverableDuration = ({ deliverable, allDeliverables, onUpdate, is
                 </Text>
 
                 {error && (
-                  <Text fontSize="2xs" color="red.500" bg="red.50" p={1} borderRadius="sm">
-                    {error}
-                  </Text>
+                  <Flex align="center" justify="space-between" bg="red.50" p={2} borderRadius="md" borderWidth="1px" borderColor="red.200">
+                    <Text fontSize="xs" color="red.600" fontWeight="medium">
+                      {error}
+                    </Text>
+                    {error.includes("Overlaps") && (
+                      <Flex align="center" gap={1.5}>
+                        <Text fontSize="xs" color="red.600">
+                          Allow?
+                        </Text>
+                        <Switch size="xs" colorPalette="red" checked={allowOverlap} onCheckedChange={(e: { checked: boolean }) => setAllowOverlap(e.checked)} />
+                      </Flex>
+                    )}
+                  </Flex>
                 )}
 
                 <Box>
