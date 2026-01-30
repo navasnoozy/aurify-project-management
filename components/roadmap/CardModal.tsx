@@ -7,7 +7,7 @@ import FormTextarea from "@/components/FormTextarea";
 import FormRadioGroup from "@/components/FormRadioGroup";
 import { AppButton } from "@/components/AppButton";
 import { addCardSchema, type AddCardInput } from "@/lib/schemas/roadmap";
-import { RoadmapItem, TaskStatus, TASK_STATUSES } from "./data";
+import { RoadmapItem, TaskStatus, TASK_STATUSES } from "./types";
 import { LuRocket } from "react-icons/lu";
 import { FormIconPicker } from "./FormIconPicker";
 import { DEFAULT_ICON_NAME, IconName } from "./iconConfig";

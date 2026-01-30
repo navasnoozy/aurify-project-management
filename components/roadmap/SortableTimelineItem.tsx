@@ -5,7 +5,7 @@ import { useSortable, defaultAnimateLayoutChanges, AnimateLayoutChanges } from "
 import { CSS } from "@dnd-kit/utilities";
 import { TimelineItem } from "./TimelineItem";
 import { motion } from "motion/react";
-import { RoadmapItem, Deliverable, TaskStatus } from "./data";
+import { RoadmapItem, Deliverable, TaskStatus } from "./types";
 
 interface SortableTimelineItemProps {
   item: RoadmapItem;

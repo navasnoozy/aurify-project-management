@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { RoadmapItem } from "@/components/roadmap/data";
+import { RoadmapItem } from "@/components/roadmap/types";
 import { AddCardInput } from "@/lib/schemas/roadmap";
 
 const BASE_URL = "/api/roadmap";

@@ -2,7 +2,7 @@
 
 import { Menu, Badge, Box, Portal } from "@chakra-ui/react";
 import { ChevronDown } from "lucide-react";
-import { TaskStatus, TASK_STATUSES } from "./data";
+import { TaskStatus, TASK_STATUSES } from "./types";
 
 interface StatusBadgeProps {
   status: TaskStatus;

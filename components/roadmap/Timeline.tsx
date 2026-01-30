@@ -5,7 +5,7 @@ import { Box, Flex, Spinner, Center, Text } from "@chakra-ui/react";
 import { TimelineItem } from "./TimelineItem";
 import { AddCardPlaceholder } from "./AddCardPlaceholder";
 import { CardModal } from "./CardModal";
-import { RoadmapItem, Deliverable, TaskStatus, computeProjectEndDate } from "./data";
+import { RoadmapItem, Deliverable, TaskStatus, computeProjectEndDate } from "./types";
 import { useRoadmapItems, useCreateRoadmapItem, useUpdateRoadmapItem, useDeleteRoadmapItem, useReorderRoadmapItems } from "@/hooks/useRoadmap";
 import { AddCardInput } from "@/lib/schemas/roadmap";
 import { AppButton } from "@/components/AppButton";

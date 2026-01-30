@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { Box, Card, Flex, Text, Icon, IconButton, Dialog } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Trash2, Pencil } from "lucide-react";
-import { RoadmapItem, Deliverable, TaskStatus, computeCardDuration } from "./data";
+import { RoadmapItem, Deliverable, TaskStatus, computeCardDuration } from "./types";
 import { motion, AnimatePresence } from "motion/react";
 import { format, parseISO } from "date-fns";
 import { DurationLabel } from "./DurationLabel";

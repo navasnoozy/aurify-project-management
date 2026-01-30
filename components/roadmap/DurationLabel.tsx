@@ -3,7 +3,7 @@
 import { Box, Text, Flex } from "@chakra-ui/react";
 import { format, parseISO } from "date-fns";
 import { Calendar, Flag, Clock } from "lucide-react";
-import { Deliverable, computeCardDuration } from "./data";
+import { Deliverable, computeCardDuration } from "./types";
 
 interface DurationLabelProps {
   deliverables: Deliverable[];

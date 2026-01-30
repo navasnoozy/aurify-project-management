@@ -4,7 +4,7 @@ import { memo } from "react";
 
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { Deliverable, TaskStatus, getStatusCounts, TASK_STATUSES } from "./data";
+import { Deliverable, TaskStatus, getStatusCounts, TASK_STATUSES } from "./types";
 import { motion } from "motion/react";
 
 interface ProgressGraphProps {

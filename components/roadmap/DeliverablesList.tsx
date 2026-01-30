@@ -3,7 +3,7 @@
 import { Box, Text, Flex, Input, IconButton, useBreakpointValue, Badge, Popover, Textarea, Portal } from "@chakra-ui/react";
 import { useState, memo } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, Check, X, Pencil, GripVertical } from "lucide-react";
-import { Deliverable, TaskStatus, getNextAvailableDate, isDateRangeOccupied } from "./data";
+import { Deliverable, TaskStatus, getNextAvailableDate, isDateRangeOccupied } from "./types";
 import { DeliverableDuration } from "./DeliverableDuration";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";

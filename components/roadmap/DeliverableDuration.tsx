@@ -5,7 +5,7 @@ import { Box, Text, Popover, Input, Flex, IconButton, Stack, Portal } from "@cha
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { Calendar, Check, X } from "lucide-react";
-import { Deliverable, isDateRangeOccupied } from "./data";
+import { Deliverable, isDateRangeOccupied } from "./types";
 import { addWorkingDays, getWorkingDays } from "@/lib/dateUtils";
 import { Switch } from "../ui/switch";
 

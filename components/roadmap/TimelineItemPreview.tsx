@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Card, Flex, Text, Icon } from "@chakra-ui/react";
-import { RoadmapItem } from "./data";
+import { RoadmapItem } from "./types";
 import { StatusBadge } from "./StatusBadge";
 import { DeliverablesList } from "./DeliverablesList";
 

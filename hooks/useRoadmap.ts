@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { roadmapService } from "@/lib/services/roadmapService";
-import { RoadmapItem } from "@/components/roadmap/data";
+import { RoadmapItem } from "@/components/roadmap/types";
 import { AddCardInput } from "@/lib/schemas/roadmap";
 import { ICON_MAP, DEFAULT_ICON_NAME } from "@/components/roadmap/iconConfig";
 
