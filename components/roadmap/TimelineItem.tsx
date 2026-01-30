@@ -1,9 +1,7 @@
-"use client";
-
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { Box, Card, Flex, Text, Icon, IconButton, Dialog } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { Trash2, Pencil, Expand, Maximize2 } from "lucide-react";
+import { Trash2, Pencil, Maximize2 } from "lucide-react";
 import { RoadmapItem, Deliverable, TaskStatus, computeCardDuration } from "./types";
 import { motion, AnimatePresence } from "motion/react";
 import { format, parseISO } from "date-fns";
@@ -12,7 +10,6 @@ import { DeliverablesList } from "./DeliverablesList";
 import { StatusBadge } from "./StatusBadge";
 import { ProgressGraph } from "./ProgressGraph";
 import useCurrentUser from "@/hooks/useCurrentUser";
-import { AppButton } from "@/components/AppButton";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 interface TimelineItemProps {
@@ -29,6 +26,8 @@ interface TimelineItemProps {
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
   isDragging?: boolean;
   forceTooltipOpen?: boolean;
+  showExpandHint?: boolean;
+  onDismissExpandHint?: () => void;
 }
 
 const MotionBox = motion.create(Box);
@@ -64,21 +63,28 @@ export const TimelineItem = ({
   dragHandleProps,
   isDragging,
   forceTooltipOpen,
+  showExpandHint,
+  onDismissExpandHint,
 }: TimelineItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const [isExpandTooltipOpen, setIsExpandTooltipOpen] = useState(false);
 
   // Sync tooltip state with prop (for onboarding hint)
+  // We compute the final open state during render
+  const isOpen = forceTooltipOpen || isTooltipOpen;
+  const isExpandOpen = showExpandHint || isExpandTooltipOpen;
+
+  // Dismiss expand hint on any click
   useEffect(() => {
-    if (forceTooltipOpen) {
-      setIsTooltipOpen(true);
-    } else if (!isHovered) {
-      // Only close if not currently hovering
-      setIsTooltipOpen(false);
+    if (showExpandHint && onDismissExpandHint) {
+      const handleClick = () => onDismissExpandHint();
+      document.addEventListener("click", handleClick, { once: true });
+      return () => document.removeEventListener("click", handleClick);
     }
-  }, [forceTooltipOpen, isHovered]);
+  }, [showExpandHint, onDismissExpandHint]);
 
   const launchDateInfo = useMemo(() => {
     const computed = computeCardDuration(item.deliverables);
@@ -144,7 +150,7 @@ export const TimelineItem = ({
         positioning={{ placement: "top" }}
         openDelay={forceTooltipOpen ? 0 : 300}
         // Controlled usage for onboarding
-        open={isTooltipOpen}
+        open={isOpen}
         onOpenChange={(e) => setIsTooltipOpen(e.open)}
       >
         <Box
@@ -161,7 +167,7 @@ export const TimelineItem = ({
           borderWidth="2px"
           borderColor="purple.400"
           transition="all 0.2s"
-          _hover={{ borderColor: "purple.300", boxShadow: "0 0 0 3px var(--chakra-colors-purple-200)" }}
+          _hover={{ borderColor: "purple.300", boxShadow: "0 0 0 3px var(--chakra-colors-purple-200)", cursor: isLoggedIn ? "grab" : "default" }}
           cursor={isLoggedIn ? "grab" : "default"}
           _active={{ cursor: isLoggedIn ? "grabbing" : "default" }}
           // Pulsing glow animation when hint is active
@@ -243,9 +249,11 @@ export const TimelineItem = ({
               {/* Action Buttons */}
               <Flex gap={1}>
                 {/* View Details / Suggestions Button - Visible to ALL */}
-                <IconButton aria-label="View details & suggestions" variant="ghost" colorPalette="purple" size="xs" onClick={() => onOpenSuggestion(item)}>
-                  <Maximize2 size={14} />
-                </IconButton>
+                <Tooltip content="Click to view details & suggest requirements" open={isExpandOpen} showArrow positioning={{ placement: "top" }} onOpenChange={(e) => setIsExpandTooltipOpen(e.open)}>
+                  <IconButton aria-label="View details & suggestions" variant="ghost" colorPalette="purple" size="xs" cursor="pointer" onClick={() => onOpenSuggestion(item)}>
+                    <Maximize2 size={14} />
+                  </IconButton>
+                </Tooltip>
 
                 {isLoggedIn && (
                   <>

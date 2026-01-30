@@ -71,10 +71,11 @@ export const Timeline = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false); // Onboarding hint state for first item
+  const [showExpandHint, setShowExpandHint] = useState(false); // Onboarding hint for expand button
 
   // Trigger onboarding hint on mount (only once per session)
   useEffect(() => {
-    const HINT_KEY = "roadmap_drag_hint_shown";
+    const HINT_KEY = "roadmap_drag_hint_shown_v2";
     if (typeof window !== "undefined" && !sessionStorage.getItem(HINT_KEY)) {
       const startTimer = setTimeout(() => setShowHint(true), 1200); // Show after 1.2s
       const endTimer = setTimeout(() => {
@@ -86,6 +87,23 @@ export const Timeline = () => {
         clearTimeout(startTimer);
         clearTimeout(endTimer);
       };
+    }
+  }, []);
+
+  // Trigger expand button hint on mount (only once per user via localStorage)
+  // Trigger expand button hint on mount (only once per user via localStorage)
+  useEffect(() => {
+    const EXPAND_HINT_KEY = "roadmap_expand_hint_shown_v3";
+    if (typeof window !== "undefined" && !localStorage.getItem(EXPAND_HINT_KEY)) {
+      const timer = setTimeout(() => setShowExpandHint(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleDismissExpandHint = useCallback(() => {
+    setShowExpandHint(false);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("roadmap_expand_hint_shown_v3", "true");
     }
   }, []);
 
@@ -257,6 +275,8 @@ export const Timeline = () => {
                   onEditItem={openEditModal}
                   onOpenSuggestion={openSuggestionModal}
                   forceTooltipOpen={index === 0 && showHint}
+                  showExpandHint={index === 0 && showExpandHint}
+                  onDismissExpandHint={handleDismissExpandHint}
                 />
               ))}
             </SortableContext>

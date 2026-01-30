@@ -18,6 +18,8 @@ interface SortableTimelineItemProps {
   onEditItem: (item: RoadmapItem) => void;
   onOpenSuggestion: (item: RoadmapItem) => void;
   forceTooltipOpen?: boolean;
+  showExpandHint?: boolean;
+  onDismissExpandHint?: () => void;
 }
 
 // Custom animation config: animate during drag, but skip animation on drop
@@ -41,6 +43,8 @@ const SortableTimelineItemComponent = ({
   onEditItem,
   onOpenSuggestion,
   forceTooltipOpen,
+  showExpandHint,
+  onDismissExpandHint,
 }: SortableTimelineItemProps) => {
   const { isOver, attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -86,6 +90,8 @@ const SortableTimelineItemComponent = ({
           dragHandleProps={{ ...listeners, ...attributes }}
           isDragging={isDragging}
           forceTooltipOpen={forceTooltipOpen}
+          showExpandHint={showExpandHint}
+          onDismissExpandHint={onDismissExpandHint}
         />
       </motion.div>
     </div>
